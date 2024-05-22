@@ -23,6 +23,7 @@ class _AddPartScreenState extends State<AddPartScreen> {
   String? _selectedVehicleType;
   String? _selectedCategory;
   String? _selectedBrand;
+  String? _selectedPartCategory; // Yeni eklendi
 
   final Map<String, List<String>> vehicleCategories = {
     'Araba': [
@@ -123,6 +124,7 @@ class _AddPartScreenState extends State<AddPartScreen> {
         'image_url': imageUrl,
         'vehicle_type': _selectedVehicleType,
         'category': _selectedCategory,
+        'partCategory': _selectedPartCategory, // Değişiklik yapıldı
         'brand': _selectedBrand,
         'title': _titleController.text,
         'year': int.parse(_yearController.text),
@@ -199,6 +201,8 @@ class _AddPartScreenState extends State<AddPartScreen> {
                 onChanged: (String? newValue) {
                   setState(() {
                     _selectedCategory = newValue;
+                    // Kategori seçildiğinde partCategory değişkenine seçilen kategori ekleniyor
+                    _selectedPartCategory = newValue;
                   });
                 },
                 items: vehicleCategories[_selectedVehicleType]!
