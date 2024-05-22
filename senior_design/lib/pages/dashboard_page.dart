@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:senior_design/pages/category_detail_page.dart';
 import 'dart:io';
 
 import 'package:senior_design/pages/add_part_screen.dart';
@@ -92,7 +93,13 @@ class CarCategoriesPage extends StatelessWidget {
           return ListTile(
             title: Text(carCategories[index]),
             onTap: () {
-              // Kategoriye tıklanınca ne olacağını burada belirleyin
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CategoryDetailPage(
+                      category: 'Araba', partCategory: carCategories[index]),
+                ),
+              );
             },
           );
         },
@@ -129,7 +136,14 @@ class MotorcycleCategoriesPage extends StatelessWidget {
           return ListTile(
             title: Text(motorcycleCategories[index]),
             onTap: () {
-              // Kategoriye tıklanınca ne olacağını burada belirleyin
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CategoryDetailPage(
+                      category: 'Motorsiklet',
+                      partCategory: motorcycleCategories[index]),
+                ),
+              );
             },
           );
         },
@@ -164,7 +178,14 @@ class BicycleCategoriesPage extends StatelessWidget {
           return ListTile(
             title: Text(bicycleCategories[index]),
             onTap: () {
-              // Kategoriye tıklanınca ne olacağını burada belirleyin
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CategoryDetailPage(
+                      category: 'Bisiklet',
+                      partCategory: bicycleCategories[index]),
+                ),
+              );
             },
           );
         },
