@@ -1,4 +1,4 @@
-package com.example.senior_design
+package com.example.vehiclesparepartsapp
 
 import io.flutter.embedding.android.FlutterActivity
 

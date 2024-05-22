@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "28298063071",
+    "project_id": "vehicle-spare-parts-app",
+    "storage_bucket": "vehicle-spare-parts-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:28298063071:android:b3a2be3e0e629a44578d6a",
+        "android_client_info": {
+          "package_name": "com.example.vehiclesparepartsapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7T5LtBJMwU84xPR-E6aHYNVhOGm7EL1k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
