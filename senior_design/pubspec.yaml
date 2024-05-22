@@ -12,6 +12,9 @@ dependencies:
     sdk: flutter
   firebase_core: ^2.31.1 # Correct version
   firebase_auth: ^4.7.1  # Correct version
+  cloud_firestore: ^4.17.4
+  firebase_storage: ^11.7.6
+  image_picker: ^1.1.1
   cupertino_icons: ^1.0.6
   lottie: ^3.1.2
 

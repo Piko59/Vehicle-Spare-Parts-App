@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+
+import 'package:senior_design/pages/add_part_screen.dart';
 
 class DashboardPage extends StatelessWidget {
   @override
@@ -40,6 +46,18 @@ class DashboardPage extends StatelessWidget {
                 );
               },
               child: Text('Bisiklet'),
+            ),
+            SizedBox(height: 20), // Araya boşluk ekleyelim
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          AddPartScreen()), // İlan ekleme sayfasına yönlendir
+                );
+              },
+              child: Text('İlan Ekle'), // Buton metni
             ),
           ],
         ),
