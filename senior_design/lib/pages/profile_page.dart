@@ -15,8 +15,20 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       _selectedIndex = index;
     });
-    // Burada her seçime göre navigasyon işlemlerini tanımlayabilirsiniz.
+    if (index == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DashboardPage()),
+      );
+    }
+    else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AddPartScreen()),
+      );
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,25 +84,48 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFF00A9B7),
-        unselectedItemColor: Colors.grey,
-        selectedFontSize: 10.0,
-        unselectedFontSize: 10.0,
-        iconSize: 28.0,
-        onTap: _onItemTapped,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add, color: Colors.white, size: 30.0),
-            label: '',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Wishlist'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+      
+      bottomNavigationBar: SizedBox(
+        height: 70,
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex,
+          selectedItemColor: Color(0xFF00A9B7),
+          unselectedItemColor: Colors.grey,
+          selectedFontSize: 10.0,
+          unselectedFontSize: 10.0,
+          iconSize: 28.0,
+          onTap: _onItemTapped,
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+            BottomNavigationBarItem(
+              icon: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AddPartScreen()),
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green,
+                  ),
+                  padding: EdgeInsets.all(8.0),
+                  child: Icon(
+                    Icons.add,
+                    color: Colors.white,
+                    size: 30.0, 
+                  ),
+                ),
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Wishlist'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          ],
+        ),
       ),
     );
   }
