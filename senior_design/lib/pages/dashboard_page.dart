@@ -3,6 +3,7 @@ import '../widgets/search_app_bar.dart';
 import '../widgets/vehicle_part_icons.dart';
 import '../widgets/popular_stores.dart';
 import 'add_part_screen.dart';
+import 'profile_page.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -21,6 +22,12 @@ class _DashboardPageState extends State<DashboardPage> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => AddPartScreen()),
+      );
+    }
+    else if (index == 4) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ProfilePage()),
       );
     }
   }
