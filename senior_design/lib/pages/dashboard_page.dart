@@ -15,9 +15,6 @@ class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
     if (index == 2) {
       Navigator.push(
         context,
