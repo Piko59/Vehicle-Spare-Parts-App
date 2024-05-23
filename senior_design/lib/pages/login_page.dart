@@ -40,7 +40,15 @@ class LoginPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
-                const Icon(Icons.lock, size: 100),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => DashboardPage()),
+                    );
+                  },
+                  child: const Icon(Icons.lock, size: 100),
+                ),
                 const SizedBox(height: 50),
                 Text(
                   'Welcome back you\'ve been missed!',
