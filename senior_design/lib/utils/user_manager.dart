@@ -3,7 +3,7 @@ class UserManager {
 
   static String? get currentUserId => _currentUserId;
 
-  static void login(String userId) {
+  static Future<void> login(String userId) async {
     _currentUserId = userId;
   }
 

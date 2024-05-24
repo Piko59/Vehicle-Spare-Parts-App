@@ -22,7 +22,7 @@ class _AddPartScreenState extends State<AddPartScreen> {
   String? _selectedVehicleType;
   String? _selectedCategory;
   String? _selectedBrand;
-  String? _selectedPartCategory; // Yeni eklendi
+  String? _selectedPartCategory;
 
   final Map<String, List<String>> vehicleCategories = {
     'Araba': [

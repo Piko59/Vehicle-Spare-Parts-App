@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import '../utils/user_manager.dart';
+// AppBar widget'ı
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController searchController;
 

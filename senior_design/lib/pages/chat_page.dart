@@ -1,4 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -11,20 +14,42 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
-  // Mesajlar ve gönderici bilgisi ile birlikte tutuluyor
-  List<Map<String, dynamic>> messages = [
-    {"text": "Merhaba!", "isMe": false},
-    {"text": "Nasılsın?", "isMe": true},
-    {"text": "Ben de iyiyim, teşekkürler!", "isMe": false}
-  ];
+  final DatabaseReference _messagesRef = FirebaseDatabase.instance.ref();
+  List<Map<String, dynamic>> messages = [];
+  String? currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    _messagesRef.child('conversations/${widget.conversationId}/messages').orderByChild('timestamp').onValue.listen((event) {
+      var snapshot = event.snapshot.value;
+      if (snapshot != null) {
+        var newMessages = Map<String, dynamic>.from(snapshot as Map);
+        setState(() {
+          // Mesajları zaman damgasına göre sıralayarak ve liste yapısını güncelleyerek ekliyoruz
+          messages = newMessages.entries.map((e) => {
+            "text": e.value['text'],
+            "senderId": e.value['senderId'],
+            "isMe": e.value['senderId'] == currentUserId,
+            "timestamp": e.value['timestamp'],
+          }).toList();
+          // Zaman damgasına göre sıralama
+          messages.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
+        });
+      }
+    });
+  }
 
   void _sendMessage() {
     if (_controller.text.isNotEmpty) {
-      setState(() {
-        // Yeni mesaj ekleniyor ve bu mesajın kullanıcı tarafından gönderildiği işaretleniyor
-        messages.add({"text": _controller.text, "isMe": true});
-        _controller.clear();
+      var newMessageId = _messagesRef.child('conversations/${widget.conversationId}/messages').push().key;
+      _messagesRef.child('conversations/${widget.conversationId}/messages/$newMessageId').set({
+        'text': _controller.text,
+        'senderId': currentUserId,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
+      _controller.clear();
     }
   }
 
@@ -41,7 +66,6 @@ class _ChatPageState extends State<ChatPage> {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 var message = messages[index];
-                // Mesajın kim tarafından gönderildiğine bağlı olarak hizalama değişiyor
                 return Align(
                   alignment: message['isMe'] ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(

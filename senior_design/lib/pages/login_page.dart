@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:senior_design/components/my_textfield.dart';
 import 'package:senior_design/components/sign_in_button.dart';
 import 'package:senior_design/components/square_tile.dart';
@@ -13,30 +14,32 @@ class LoginPage extends StatelessWidget {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-void signInUser(BuildContext context) async {
-  String email = emailController.text;
-  String password = passwordController.text;
-  
-  try {
-    UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password
-    );
+  void signInUser(BuildContext context) async {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
 
-    if (userCredential.user != null) {
-      UserManager.login(userCredential.user!.uid);
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => DashboardPage()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No user found.')));
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password
+      );
+
+      if (userCredential.user != null) {
+        String userId = userCredential.user!.uid;
+
+        UserManager.login(userId);
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => DashboardPage()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No user found.')));
+      }
+    } catch (e) {
+      String errorMessage = 'An error occurred. Please try again.';
+      if (e is FirebaseAuthException) {
+        errorMessage = e.message ?? errorMessage;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
-  } catch (e) {
-    String errorMessage = 'An error occurred. Please try again.';
-    if (e is FirebaseAuthException) {
-      errorMessage = e.message ?? errorMessage;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
   }
-}
 
   @override
   Widget build(BuildContext context) {
