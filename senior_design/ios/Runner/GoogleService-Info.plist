@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>28298063071-u88lmdtgd9td4pb6q18vbo4jskbs11m0.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.28298063071-u88lmdtgd9td4pb6q18vbo4jskbs11m0</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAeI-iBXs4JQ0CrCDi-4_fZAe-yoTl1rqY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>28298063071</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.seniorDesign</string>
+	<key>PROJECT_ID</key>
+	<string>vehicle-spare-parts-app</string>
+	<key>STORAGE_BUCKET</key>
+	<string>vehicle-spare-parts-app.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:28298063071:ios:961fb06d075b1e82578d6a</string>
+	<key>DATABASE_URL</key>
+	<string>https://vehicle-spare-parts-app-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>

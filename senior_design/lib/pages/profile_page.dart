@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'dashboard_page.dart';
-import 'add_part_screen.dart'; // AddPartScreen sayfasını import etmeyi unutmayın
+import 'add_part_screen.dart';
+import 'conversations_page.dart';
+import '../utils/user_manager.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -12,6 +14,7 @@ class _ProfilePageState extends State<ProfilePage> {
   int _selectedIndex = 4;
 
   void _onItemTapped(int index) {
+    String? userId = UserManager.currentUserId;
     if (index == 0) {
       Navigator.push(
         context,
@@ -23,6 +26,20 @@ class _ProfilePageState extends State<ProfilePage> {
         context,
         MaterialPageRoute(builder: (context) => AddPartScreen()),
       );
+    }
+    else if (index == 3) {
+      if (userId != null) {
+        // Kullanıcı ID'si mevcutsa ve null değilse ConversationsPage'e yönlendir
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ConversationsPage(userId: userId)),
+        );
+      } else {
+        // Kullanıcı ID'si null ise hata mesajı göster
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("You must be logged in to view conversations."))
+        );
+      }
     }
   }
 
@@ -118,7 +135,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               label: '',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Wishlist'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),

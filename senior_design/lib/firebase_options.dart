@@ -46,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '28298063071',
     projectId: 'vehicle-spare-parts-app',
     authDomain: 'vehicle-spare-parts-app.firebaseapp.com',
+    databaseURL: 'https://vehicle-spare-parts-app-default-rtdb.firebaseio.com',
     storageBucket: 'vehicle-spare-parts-app.appspot.com',
   );
 
@@ -54,6 +55,7 @@ class DefaultFirebaseOptions {
     appId: '1:28298063071:android:b3a2be3e0e629a44578d6a',
     messagingSenderId: '28298063071',
     projectId: 'vehicle-spare-parts-app',
+    databaseURL: 'https://vehicle-spare-parts-app-default-rtdb.firebaseio.com',
     storageBucket: 'vehicle-spare-parts-app.appspot.com',
   );
 
@@ -62,7 +64,9 @@ class DefaultFirebaseOptions {
     appId: '1:28298063071:ios:961fb06d075b1e82578d6a',
     messagingSenderId: '28298063071',
     projectId: 'vehicle-spare-parts-app',
+    databaseURL: 'https://vehicle-spare-parts-app-default-rtdb.firebaseio.com',
     storageBucket: 'vehicle-spare-parts-app.appspot.com',
+    iosClientId: '28298063071-u88lmdtgd9td4pb6q18vbo4jskbs11m0.apps.googleusercontent.com',
     iosBundleId: 'com.example.seniorDesign',
   );
 
@@ -71,7 +75,9 @@ class DefaultFirebaseOptions {
     appId: '1:28298063071:ios:961fb06d075b1e82578d6a',
     messagingSenderId: '28298063071',
     projectId: 'vehicle-spare-parts-app',
+    databaseURL: 'https://vehicle-spare-parts-app-default-rtdb.firebaseio.com',
     storageBucket: 'vehicle-spare-parts-app.appspot.com',
+    iosClientId: '28298063071-u88lmdtgd9td4pb6q18vbo4jskbs11m0.apps.googleusercontent.com',
     iosBundleId: 'com.example.seniorDesign',
   );
 
@@ -81,6 +87,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '28298063071',
     projectId: 'vehicle-spare-parts-app',
     authDomain: 'vehicle-spare-parts-app.firebaseapp.com',
+    databaseURL: 'https://vehicle-spare-parts-app-default-rtdb.firebaseio.com',
     storageBucket: 'vehicle-spare-parts-app.appspot.com',
   );
+
 }

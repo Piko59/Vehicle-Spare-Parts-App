@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:senior_design/components/my_textfield.dart';
 import 'package:senior_design/components/sign_up_button.dart';
 import 'package:senior_design/components/square_tile.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'login_page.dart';
 
 class SignUpPage extends StatelessWidget {
@@ -11,6 +12,7 @@ class SignUpPage extends StatelessWidget {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final usernameController = TextEditingController();  // Kullanıcı adı için controller
 
   void signUserUp(BuildContext context) async {
     if (passwordController.text != confirmPasswordController.text) {
@@ -20,10 +22,15 @@ class SignUpPage extends StatelessWidget {
       return;
     }
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: emailController.text,
         password: passwordController.text,
       );
+      // Kullanıcı başarıyla oluşturulduktan sonra Firebase Database'e kullanıcı adı ve email ekleyin
+      FirebaseDatabase.instance.reference().child('users').child(userCredential.user!.uid).set({
+        'username': usernameController.text,
+        'email': emailController.text
+      });
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -53,6 +60,12 @@ class SignUpPage extends StatelessWidget {
                   style: TextStyle(color: Colors.grey[700], fontSize: 16),
                 ),
                 const SizedBox(height: 25),
+                MyTextField(
+                  controller: usernameController,
+                  hintText: 'Username',
+                  obscureText: false,
+                ),
+                const SizedBox(height: 10),
                 MyTextField(
                   controller: emailController,
                   hintText: 'Email',

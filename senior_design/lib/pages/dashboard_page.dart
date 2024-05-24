@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/search_app_bar.dart';
 import '../widgets/vehicle_part_icons.dart';
 import '../widgets/popular_stores.dart';
 import 'add_part_screen.dart';
 import 'profile_page.dart';
+import 'conversations_page.dart';
 
 class DashboardPage extends StatefulWidget {
   @override
@@ -13,6 +15,19 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 0;
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        setState(() {
+          _currentUserId = user.uid;
+        });
+      }
+    });
+  }
 
   void _onItemTapped(int index) {
     if (index == 2) {
@@ -20,6 +35,17 @@ class _DashboardPageState extends State<DashboardPage> {
         context,
         MaterialPageRoute(builder: (context) => AddPartScreen()),
       );
+    }
+    else if (index == 3) {
+      if (_currentUserId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ConversationsPage(userId: _currentUserId!)),
+        );
+      } else {
+        // Handle error or inform user to login
+        print('User not logged in');
+      }
     }
     else if (index == 4) {
       Navigator.push(
@@ -79,7 +105,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               label: '',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Wishlist'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),

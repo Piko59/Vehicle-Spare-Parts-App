@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "28298063071",
+    "firebase_url": "https://vehicle-spare-parts-app-default-rtdb.firebaseio.com",
     "project_id": "vehicle-spare-parts-app",
     "storage_bucket": "vehicle-spare-parts-app.appspot.com"
   },
@@ -12,7 +13,12 @@
           "package_name": "com.example.vehiclesparepartsapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "28298063071-j4ddltukrk6gvkhilb74pufk1dcjn3gj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB7T5LtBJMwU84xPR-E6aHYNVhOGm7EL1k"
@@ -20,7 +26,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "28298063071-j4ddltukrk6gvkhilb74pufk1dcjn3gj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "28298063071-u88lmdtgd9td4pb6q18vbo4jskbs11m0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.seniorDesign"
+              }
+            }
+          ]
         }
       }
     }
