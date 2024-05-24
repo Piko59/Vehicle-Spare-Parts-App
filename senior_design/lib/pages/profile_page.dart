@@ -3,6 +3,7 @@ import 'login_page.dart';
 import 'dashboard_page.dart';
 import 'add_part_screen.dart';
 import 'conversations_page.dart';
+import 'edit_profile_page.dart'; // Yeni ekledik
 import '../utils/user_manager.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -20,29 +21,26 @@ class _ProfilePageState extends State<ProfilePage> {
         context,
         MaterialPageRoute(builder: (context) => DashboardPage()),
       );
-    }
-    else if (index == 2) {
+    } else if (index == 2) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => AddPartScreen()),
       );
-    }
-    else if (index == 3) {
+    } else if (index == 3) {
       if (userId != null) {
         // Kullanıcı ID'si mevcutsa ve null değilse ConversationsPage'e yönlendir
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ConversationsPage(userId: userId)),
+          MaterialPageRoute(
+              builder: (context) => ConversationsPage(userId: userId)),
         );
       } else {
         // Kullanıcı ID'si null ise hata mesajı göster
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("You must be logged in to view conversations."))
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("You must be logged in to view conversations.")));
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +52,17 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         title: Text('My Account', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF00A9B7),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EditProfilePage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: <Widget>[
@@ -70,7 +79,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 SizedBox(height: 10),
                 Text(
                   'Emre Semiz',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
                 Text(
                   'App Developer',
@@ -90,9 +102,12 @@ class _ProfilePageState extends State<ProfilePage> {
           Expanded(
             child: ListView(
               children: <Widget>[
-                _buildMenuButton(context, Icons.shopping_cart, 'My Orders', DashboardPage()),
-                _buildMenuButton(context, Icons.settings, 'Settings', DashboardPage()),
-                _buildMenuButton(context, Icons.exit_to_app, 'Log Out', LoginPage()),
+                _buildMenuButton(
+                    context, Icons.shopping_cart, 'My Orders', DashboardPage()),
+                _buildMenuButton(
+                    context, Icons.settings, 'Settings', DashboardPage()),
+                _buildMenuButton(
+                    context, Icons.exit_to_app, 'Log Out', LoginPage()),
               ],
             ),
           ),
@@ -111,7 +126,8 @@ class _ProfilePageState extends State<ProfilePage> {
           onTap: _onItemTapped,
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.explore), label: 'Explore'),
             BottomNavigationBarItem(
               icon: GestureDetector(
                 onTap: () {
@@ -129,7 +145,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Icon(
                     Icons.add,
                     color: Colors.white,
-                    size: 30.0, 
+                    size: 30.0,
                   ),
                 ),
               ),
@@ -180,9 +196,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuButton(BuildContext context, IconData icon, String title, Widget page) {
+  Widget _buildMenuButton(
+      BuildContext context, IconData icon, String title, Widget page) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 72.0), // İstatistik kartlarıyla aynı padding
+      padding: EdgeInsets.symmetric(
+          horizontal: 72.0), // İstatistik kartlarıyla aynı padding
       child: ListTile(
         leading: Icon(icon),
         title: Text(title),
