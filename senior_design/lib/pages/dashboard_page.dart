@@ -17,6 +17,40 @@ class _DashboardPageState extends State<DashboardPage> {
   int _selectedIndex = 0;
   String? _currentUserId;
 
+  void _showEmergencyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Emergency Categories'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: List.generate(
+                businessCategories.length,
+                (index) => ListTile(
+                  title: Text(businessCategories[index]),
+                  onTap: () {
+                    // Handle emergency category selection
+                    print('Selected category: ${businessCategories[index]}');
+                    Navigator.pop(context); // Close the dialog
+                  },
+                ),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,19 +69,18 @@ class _DashboardPageState extends State<DashboardPage> {
         context,
         MaterialPageRoute(builder: (context) => AddPartScreen()),
       );
-    }
-    else if (index == 3) {
+    } else if (index == 3) {
       if (_currentUserId != null) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ConversationsPage(userId: _currentUserId!)),
+          MaterialPageRoute(
+              builder: (context) => ConversationsPage(userId: _currentUserId!)),
         );
       } else {
         // Handle error or inform user to login
         print('User not logged in');
       }
-    }
-    else if (index == 4) {
+    } else if (index == 4) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => ProfilePage()),
@@ -68,6 +101,13 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showEmergencyDialog(context);
+        },
+        backgroundColor: Colors.red,
+        child: Icon(Icons.warning),
+      ),
       bottomNavigationBar: SizedBox(
         height: 70,
         child: BottomNavigationBar(
@@ -81,7 +121,8 @@ class _DashboardPageState extends State<DashboardPage> {
           onTap: _onItemTapped,
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.explore), label: 'Explore'),
             BottomNavigationBarItem(
               icon: GestureDetector(
                 onTap: () {
@@ -99,7 +140,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: Icon(
                     Icons.add,
                     color: Colors.white,
-                    size: 30.0, 
+                    size: 30.0,
                   ),
                 ),
               ),
@@ -113,3 +154,12 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
+
+List<String> businessCategories = [
+  'Lastikçi',
+  'Göçükçü',
+  'Karbüratörcü',
+  'Modifiyeci',
+  'Motor Arıza',
+  'Kaportacı'
+];
