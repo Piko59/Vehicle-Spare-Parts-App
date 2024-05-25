@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter_signin_button/flutter_signin_button.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:senior_design/components/my_textfield.dart';
 import 'package:senior_design/components/sign_in_button.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'sign_up_page.dart';
 import 'dashboard_page.dart';
 import 'forget_password_page.dart';
@@ -36,8 +34,12 @@ class LoginPage extends StatelessWidget {
             .showSnackBar(const SnackBar(content: Text('No user found.')));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("An error occurred. Please try again.")));
+      String errorMessage = 'An error occurred. Please try again.';
+      if (e is FirebaseAuthException) {
+        errorMessage = e.message ?? errorMessage;
+      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(errorMessage)));
     }
   }
 
@@ -145,33 +147,27 @@ class LoginPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: Divider(thickness: 0.5, color: Colors.grey[400]),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Text(
-                          'Or continue with',
-                          style: TextStyle(color: Colors.grey[700]),
+                      GestureDetector(
+                        onTap: () => signInWithGoogle(context),
+                        child: Image.asset(
+                          "lib/images/google.png",
+                          height: 50,
+                          width: 50,
                         ),
                       ),
-                      Expanded(
-                        child: Divider(thickness: 0.5, color: Colors.grey[400]),
+                      SizedBox(width: 20), // Space between buttons
+                      GestureDetector(
+                        onTap: () => signInWithApple(context),
+                        child: Image.asset(
+                          "lib/images/apple.png",
+                          height: 50,
+                          width: 50,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 50),
-                SignInButton(
-                  Buttons.Google,
-                  text: "Sign in with Google",
-                  onPressed: () => signInWithGoogle(context),
-                ),
-                SignInButton(
-                  Buttons.Apple,
-                  text: "Sign in with Apple",
-                  onPressed: () => signInWithApple(context),
                 ),
                 const SizedBox(height: 40),
                 Row(
