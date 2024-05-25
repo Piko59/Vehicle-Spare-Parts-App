@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'login_page.dart';
 import 'dashboard_page.dart';
 import 'add_part_screen.dart';
@@ -13,9 +14,46 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _selectedIndex = 4;
+  String? profileImage = 'assets/emre.png';
+  String displayName = 'Anonymous User';
+  String? userId = UserManager.currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfileData();
+  }
+
+  void _fetchProfileData() async {
+    if (userId != null) {
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.reference().child('users').child(userId!);
+
+      DatabaseEvent event = await userRef.once();
+      DataSnapshot snapshot = event.snapshot;
+      Map<dynamic, dynamic> userData = snapshot.value as Map<dynamic, dynamic>;
+
+      String? profileType = userData['profileType'];
+
+      if (profileType == 'business') {
+        setState(() {
+          profileImage =
+              userData['profile']['businessImage'] ?? 'assets/emre.png';
+          displayName = userData['profile']['businessName'] ?? 'Anonymous User';
+        });
+      } else {
+        setState(() {
+          profileImage =
+              userData['profile']['profileImage'] ?? 'assets/emre.png';
+          displayName =
+              '${userData['profile']['firstName'] ?? ''} ${userData['profile']['lastName'] ?? ''}'
+                  .trim();
+        });
+      }
+    }
+  }
 
   void _onItemTapped(int index) {
-    String? userId = UserManager.currentUserId;
     if (index == 0) {
       Navigator.push(
         context,
@@ -28,14 +66,12 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     } else if (index == 3) {
       if (userId != null) {
-        // Kullanıcı ID'si mevcutsa ve null değilse ConversationsPage'e yönlendir
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ConversationsPage(userId: userId)),
+              builder: (context) => ConversationsPage(userId: userId!)),
         );
       } else {
-        // Kullanıcı ID'si null ise hata mesajı göster
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("You must be logged in to view conversations.")));
       }
@@ -73,20 +109,18 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               children: <Widget>[
                 CircleAvatar(
-                  backgroundImage: AssetImage('assets/emre.png'),
+                  backgroundImage: profileImage != null
+                      ? NetworkImage(profileImage!)
+                      : AssetImage('assets/emre.png'),
                   radius: 50,
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Emre Semiz',
+                  displayName,
                   style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
-                ),
-                Text(
-                  'App Developer',
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
                 ),
                 SizedBox(height: 20),
                 Row(
@@ -199,8 +233,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildMenuButton(
       BuildContext context, IconData icon, String title, Widget page) {
     return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: 72.0), // İstatistik kartlarıyla aynı padding
+      padding: EdgeInsets.symmetric(horizontal: 72.0),
       child: ListTile(
         leading: Icon(icon),
         title: Text(title),
