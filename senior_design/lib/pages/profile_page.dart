@@ -18,13 +18,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   int _selectedIndex = 4;
-  String? profileImage = 'assets/default_user_image.jpg';
+  String? profileImage;
   String displayName = 'Anonymous User';
   File? _imageFile;
   final picker = ImagePicker();
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
-  final String userId = UserManager.currentUserId ?? ''; // Kullanıcı ID'sini alıyoruz.
+  final String userId =
+      UserManager.currentUserId ?? ''; // Kullanıcı ID'sini alıyoruz.
 
   @override
   void initState() {
@@ -34,12 +35,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadUserProfile() async {
     try {
-      final DatabaseEvent event = await _databaseRef.child('users/$userId').once();
+      final DatabaseEvent event =
+          await _databaseRef.child('users/$userId').once();
       final DataSnapshot snapshot = event.snapshot;
       if (snapshot.value != null) {
         setState(() {
-          profileImage = snapshot.child('profileImageUrl').value as String? ?? 'assets/default_user_image.jpg';
-          displayName = snapshot.child('name').value as String? ?? 'Anonymous User';
+          profileImage = snapshot.child('profileImageUrl').value
+              as String?; // null by default
+          displayName =
+              snapshot.child('name').value as String? ?? 'Anonymous User';
         });
       }
     } catch (e) {
@@ -61,7 +65,8 @@ class _ProfilePageState extends State<ProfilePage> {
     } else if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ConversationsPage(userId: userId)),
+        MaterialPageRoute(
+            builder: (context) => ConversationsPage(userId: userId)),
       );
     }
   }
@@ -98,7 +103,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _updateProfileImageURL(String downloadURL) async {
     try {
-      await _databaseRef.child('users/$userId').update({'profileImageUrl': downloadURL});
+      await _databaseRef
+          .child('users/$userId')
+          .update({'profileImageUrl': downloadURL});
       print('Profile image URL updated successfully.');
     } catch (e) {
       print('Error updating profile image URL: $e');
@@ -111,7 +118,7 @@ class _ProfilePageState extends State<ProfilePage> {
         CircleAvatar(
           backgroundImage: profileImage != null
               ? NetworkImage(profileImage!)
-              : AssetImage('assets/default_user_image.jpg') as ImageProvider,
+              : AssetImage('assets/default_user_image.jpg'),
           radius: 95,
         ),
         Positioned(
@@ -138,7 +145,8 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('My Account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text('My Account',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Color(0xFF00A9B7),
         actions: [
           IconButton(
