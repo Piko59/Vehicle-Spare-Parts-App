@@ -60,50 +60,83 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
           ),
         ],
       ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: LatLng(37.7749, -122.4194), // Default to San Francisco
-          zoom: 14.0,
-        ),
-        myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        onMapCreated: (GoogleMapController controller) {
-          _mapController = controller;
-          _location.onLocationChanged.listen((LocationData currentLocation) {
-            if (_selectedLocation == null) {
-              _mapController?.animateCamera(
-                CameraUpdate.newCameraPosition(
-                  CameraPosition(
-                    target: LatLng(
-                      currentLocation.latitude!,
-                      currentLocation.longitude!,
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(37.7749, -122.4194), // Default to San Francisco
+              zoom: 14.0,
+            ),
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            onMapCreated: (GoogleMapController controller) {
+              _mapController = controller;
+              _location.onLocationChanged
+                  .listen((LocationData currentLocation) {
+                if (_selectedLocation == null) {
+                  _mapController?.animateCamera(
+                    CameraUpdate.newCameraPosition(
+                      CameraPosition(
+                        target: LatLng(
+                          currentLocation.latitude!,
+                          currentLocation.longitude!,
+                        ),
+                        zoom: 14.0,
+                      ),
                     ),
-                    zoom: 14.0,
-                  ),
-                ),
-              );
-            }
-          });
-        },
-        onTap: (LatLng position) {
-          setState(() {
-            _selectedLocation = position;
-          });
-        },
-        markers: _selectedLocation != null
-            ? {
-          Marker(
-            markerId: MarkerId('selectedLocation'),
-            position: _selectedLocation!,
-            draggable: true,
-            onDragEnd: (LatLng newPosition) {
-              setState(() {
-                _selectedLocation = newPosition;
+                  );
+                }
               });
             },
+            onTap: (LatLng position) {
+              setState(() {
+                _selectedLocation = position;
+              });
+            },
+            markers: _selectedLocation != null
+                ? {
+                    Marker(
+                      markerId: MarkerId('selectedLocation'),
+                      position: _selectedLocation!,
+                      draggable: true,
+                      onDragEnd: (LatLng newPosition) {
+                        setState(() {
+                          _selectedLocation = newPosition;
+                        });
+                      },
+                    ),
+                  }
+                : {},
           ),
-        }
-            : {},
+          Positioned(
+            left: 16.0,
+            bottom: 16.0,
+            child: FloatingActionButton(
+              onPressed: _markAndGoToUserLocation,
+              tooltip: 'Mark and Go to User Location',
+              child: Icon(Icons.location_on),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _markAndGoToUserLocation() async {
+    LocationData currentLocation = await _location.getLocation();
+    setState(() {
+      _selectedLocation =
+          LatLng(currentLocation.latitude!, currentLocation.longitude!);
+    });
+    _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(
+            currentLocation.latitude!,
+            currentLocation.longitude!,
+          ),
+          zoom: 14.0,
+        ),
       ),
     );
   }
