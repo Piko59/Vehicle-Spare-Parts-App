@@ -40,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final DataSnapshot snapshot = event.snapshot;
       if (snapshot.value != null) {
         setState(() {
-          profileImage = snapshot.child('profileImageUrl').value
+          profileImage = snapshot.child('imageUrl').value
               as String?; // null by default
           displayName =
               snapshot.child('name').value as String? ?? 'Anonymous User';
@@ -95,17 +95,17 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         profileImage = downloadURL;
       });
-      _updateProfileImageURL(downloadURL); // Profil resim URL'sini güncelle
+      _updateImageURL(downloadURL); // Profil resim URL'sini güncelle
     } catch (e) {
       print('Error uploading image: $e');
     }
   }
 
-  Future<void> _updateProfileImageURL(String downloadURL) async {
+  Future<void> _updateImageURL(String downloadURL) async {
     try {
       await _databaseRef
           .child('users/$userId')
-          .update({'profileImageUrl': downloadURL});
+          .update({'imageUrl': downloadURL});
       print('Profile image URL updated successfully.');
     } catch (e) {
       print('Error updating profile image URL: $e');

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../utils/user_manager.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'select_location_page.dart'; // Harita sayfası için import
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -17,10 +19,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
 
-  // Business specific field
+  // Business specific fields
   String _businessCategory = 'Tire Shop'; // Default category set
+  LatLng? _businessLocation; // To store the selected location
 
   List<String> businessCategories = [
     'Tire Shop',
@@ -50,11 +52,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _usernameController.text =
               userData['username']; // Veritabanından username'i al
           _phoneNumberController.text = userData['phoneNumber'];
-          _addressController.text = userData['address'];
           if (_isBusiness) {
             _businessCategory = userData['businessCategory'] ?? 'Tire Shop';
             if (!businessCategories.contains(_businessCategory)) {
               _businessCategory = 'Tire Shop';
+            }
+            if (userData.containsKey('location')) {
+              _businessLocation = LatLng(
+                userData['location']['latitude'],
+                userData['location']['longitude'],
+              );
             }
           }
         });
@@ -67,8 +74,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _nameController.dispose();
     _usernameController.dispose();
     _phoneNumberController.dispose();
-    _addressController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectLocation() async {
+    final selectedLocation = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SelectLocationPage()),
+    );
+
+    if (selectedLocation != null) {
+      setState(() {
+        _businessLocation = selectedLocation;
+      });
+    }
   }
 
   @override
@@ -104,15 +123,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 _buildTextInput('Name', _nameController),
                 _buildTextInput('Username', _usernameController),
                 _buildTextInput('Phone Number', _phoneNumberController),
-                _buildTextInput(
-                    'Address (City / District)', _addressController),
               ] else ...[
                 _buildTextInput('Business Name', _nameController),
                 _buildBusinessCategoryDropdown(),
                 _buildTextInput(
                     'Business Phone Number', _phoneNumberController),
-                _buildTextInput(
-                    'Business Address (City / District)', _addressController),
+                _buildLocationSelector(), // Yeni konum seçici düğmesini ekledik
               ],
               SizedBox(height: 20),
               ElevatedButton(
@@ -184,6 +200,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  Widget _buildLocationSelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Business Address',
+            style: TextStyle(fontSize: 16),
+          ),
+          SizedBox(height: 10),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: _selectLocation,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00A9B7),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                ),
+                child: Text(
+                  'Select Location',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              SizedBox(width: 10),
+              if (_businessLocation != null)
+                Text(
+                  'Location Selected',
+                  style: TextStyle(fontSize: 16, color: Colors.green),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
       String? userId = UserManager.currentUserId;
@@ -193,11 +246,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
           'username': _usernameController.text,
           'phoneNumber': _phoneNumberController.text,
           'profileType': _isBusiness ? 'business' : 'personal',
-          'address': _addressController.text,
         };
 
         if (_isBusiness) {
           profileData['businessCategory'] = _businessCategory;
+          if (_businessLocation != null) {
+            profileData['location'] = {
+              'latitude': _businessLocation!.latitude,
+              'longitude': _businessLocation!.longitude,
+            };
+          }
         }
 
         _databaseReference.child(userId).update(profileData).then((_) {
