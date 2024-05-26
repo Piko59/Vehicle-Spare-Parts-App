@@ -42,15 +42,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (userId != null) {
       DataSnapshot snapshot = await _databaseReference.child(userId).get();
       if (snapshot.exists) {
-        Map<String, dynamic> userData = Map<String, dynamic>.from(snapshot.value as Map);
+        Map<String, dynamic> userData =
+            Map<String, dynamic>.from(snapshot.value as Map);
         setState(() {
           _isBusiness = userData['profileType'] == 'business';
           _nameController.text = userData['name'];
-          _usernameController.text = userData['username']; // Veritabanından username'i al
+          _usernameController.text =
+              userData['username']; // Veritabanından username'i al
           _phoneNumberController.text = userData['phoneNumber'];
           _addressController.text = userData['address'];
           if (_isBusiness) {
-            _businessCategory = userData['businessCategory'];
+            _businessCategory = userData['businessCategory'] ?? 'Tire Shop';
+            if (!businessCategories.contains(_businessCategory)) {
+              _businessCategory = 'Tire Shop';
+            }
           }
         });
       }
@@ -99,12 +104,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 _buildTextInput('Name', _nameController),
                 _buildTextInput('Username', _usernameController),
                 _buildTextInput('Phone Number', _phoneNumberController),
-                _buildTextInput('Address (City / District)', _addressController),
+                _buildTextInput(
+                    'Address (City / District)', _addressController),
               ] else ...[
                 _buildTextInput('Business Name', _nameController),
                 _buildBusinessCategoryDropdown(),
-                _buildTextInput('Business Phone Number', _phoneNumberController),
-                _buildTextInput('Business Address (City / District)', _addressController),
+                _buildTextInput(
+                    'Business Phone Number', _phoneNumberController),
+                _buildTextInput(
+                    'Business Address (City / District)', _addressController),
               ],
               SizedBox(height: 20),
               ElevatedButton(
@@ -112,7 +120,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF00A9B7),
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textStyle:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 child: Text(
                   'Save',
