@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'chat_page.dart'; // ChatPage sayfasının import edilmesi
-import 'new_conversation_page.dart'; // ChatPage sayfasının import edilmesi
+import 'chat_page.dart';
+import 'new_conversation_page.dart';
 
 class ConversationsPage extends StatefulWidget {
   final String userId;
@@ -24,10 +24,40 @@ class _ConversationsPageState extends State<ConversationsPage> {
         .equalTo(true);
   }
 
-  Future<String> _getUserName(String userId) async {
-    DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId/username');
+  Future<Map<String, String>> _getUserDetails(String userId) async {
+    DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId');
     DatabaseEvent event = await userRef.once();
-    return event.snapshot.value as String? ?? 'Unknown';
+    Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
+    String username = userData['username'] as String? ?? 'Unknown';
+    String imageUrl = userData['imageUrl'] as String? ?? 'assets/default_user_image.jpg';
+    return {'username': username, 'imageUrl': imageUrl};
+  }
+
+  String _formatTimestamp(int timestamp) {
+    var date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    return "${date.hour}:${date.minute.toString().padLeft(2, '0')}";
+  }
+
+  void _showFullImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              color: Colors.black,
+              child: Image(
+                image: imageUrl.startsWith('assets/')
+                    ? AssetImage(imageUrl) as ImageProvider
+                    : NetworkImage(imageUrl),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -35,14 +65,13 @@ class _ConversationsPageState extends State<ConversationsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Conversations"),
-        backgroundColor: Color(0xFF00A9B7), // Yeni renk burada ayarlandı
-        iconTheme: IconThemeData(color: Colors.white), // AppBar'daki ikonların rengini beyaz yapar
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold), // Başlığı beyaz yapar
+        backgroundColor: Color(0xFF00A9B7),
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
             onPressed: () {
-              // Burada kullanıcı yeni bir konuşma başlatma sayfasına yönlendirilebilir
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => NewConversationPage(userId: widget.userId)),
@@ -57,16 +86,14 @@ class _ConversationsPageState extends State<ConversationsPage> {
           if (snapshot.hasError) {
             return Center(child: Text("Error loading conversations"));
           } else if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-            // Güvenli bir şekilde Map'e dönüştür
             var snapshotData = snapshot.data!.snapshot.value;
             if (snapshotData is Map<dynamic, dynamic>) {
-              // Mesajları zaman damgasına göre sıralayın
               var sortedConversations = snapshotData.entries.toList()
                 ..sort((a, b) {
-                  var aMessages = a.value['messages'] ?? {};
-                  var bMessages = b.value['messages'] ?? {};
-                  var aLastMessageTime = aMessages.values.isNotEmpty ? aMessages.values.last['timestamp'] : 0;
-                  var bLastMessageTime = bMessages.values.isNotEmpty ? bMessages.values.last['timestamp'] : 0;
+                  var aMessages = Map<String, dynamic>.from(a.value['messages'] ?? {});
+                  var bMessages = Map<String, dynamic>.from(b.value['messages'] ?? {});
+                  var aLastMessageTime = aMessages.values.isNotEmpty ? aMessages.entries.map((e) => e.value['timestamp']).reduce((a, b) => a > b ? a : b) : 0;
+                  var bLastMessageTime = bMessages.values.isNotEmpty ? bMessages.entries.map((e) => e.value['timestamp']).reduce((a, b) => a > b ? a : b) : 0;
                   return bLastMessageTime.compareTo(aLastMessageTime);
                 });
 
@@ -74,36 +101,55 @@ class _ConversationsPageState extends State<ConversationsPage> {
                 children: sortedConversations.map((entry) {
                   var key = entry.key;
                   var value = Map<String, dynamic>.from(entry.value);
-                  var lastMessage = value['messages']?.values?.last['text'] ?? 'No messages yet';
+                  var lastMessageEntry = Map<String, dynamic>.from(value['messages']?.entries.map((e) => e.value).reduce((a, b) => a['timestamp'] > b['timestamp'] ? a : b) ?? {});
+                  var lastMessage = lastMessageEntry['text'] ?? 'No messages yet';
+                  var lastMessageTime = lastMessageEntry['timestamp'] ?? 0;
+                  var lastMessageSender = lastMessageEntry['senderId'] ?? '';
                   var participants = Map<String, dynamic>.from(value['participants']);
                   var otherUserId = participants.keys.firstWhere((id) => id != widget.userId, orElse: () => '');
 
-                  return FutureBuilder<String>(
-                    future: _getUserName(otherUserId),
+                  return FutureBuilder<Map<String, String>>(
+                    future: _getUserDetails(otherUserId),
                     builder: (context, userSnapshot) {
                       if (userSnapshot.connectionState == ConnectionState.waiting) {
                         return ListTile(
                           leading: CircleAvatar(
+                            radius: 30,
                             backgroundImage: AssetImage('assets/default_user_image.jpg'),
                           ),
-                          title: Text('Loading...'),
-                          subtitle: Text(lastMessage),
+                          title: Text('Loading...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          subtitle: Text(lastMessage, style: TextStyle(fontSize: 16)),
                         );
                       } else if (userSnapshot.hasError) {
                         return ListTile(
                           leading: CircleAvatar(
+                            radius: 30,
                             backgroundImage: AssetImage('assets/default_user_image.jpg'),
                           ),
-                          title: Text('Error loading name'),
-                          subtitle: Text(lastMessage),
+                          title: Text('Error loading name', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          subtitle: Text(lastMessage, style: TextStyle(fontSize: 16)),
                         );
                       } else {
+                        var userDetails = userSnapshot.data!;
+                        var lastMessagePrefix = lastMessageSender == widget.userId ? 'You: ' : '${userDetails['username']}: ';
                         return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/default_user_image.jpg'),
+                          leading: GestureDetector(
+                            onTap: () => _showFullImage(context, userDetails['imageUrl']!),
+                            child: CircleAvatar(
+                              radius: 30,
+                              backgroundImage: userDetails['imageUrl']!.startsWith('assets/')
+                                  ? AssetImage(userDetails['imageUrl']!) as ImageProvider
+                                  : NetworkImage(userDetails['imageUrl']!),
+                            ),
                           ),
-                          title: Text(userSnapshot.data ?? 'Unknown'),
-                          subtitle: Text(lastMessage),
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(userDetails['username']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text(_formatTimestamp(lastMessageTime), style: TextStyle(fontSize: 14, color: Colors.grey)),
+                            ],
+                          ),
+                          subtitle: Text('$lastMessagePrefix$lastMessage', style: TextStyle(fontSize: 16)),
                           onTap: () {
                             Navigator.push(
                               context,

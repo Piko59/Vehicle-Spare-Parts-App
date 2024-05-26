@@ -1,10 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';  // dart:io paketini import edin
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -53,7 +54,7 @@ class _ChatPageState extends State<ChatPage> {
         if (atBottomBeforeUpdate) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (_scrollController.hasClients) {
-              _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+              _scrollController.jumpTo(_scrollController.position.maxScrollExtent + 100);
             }
           });
         }
@@ -62,6 +63,22 @@ class _ChatPageState extends State<ChatPage> {
 
     // Other user's ID and username retrieval
     _getOtherUserDetails();
+
+    // Scroll to bottom on initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        Future.delayed(Duration(milliseconds: 300), () {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: Duration(milliseconds: 800),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
+    });
   }
 
   void _getOtherUserDetails() async {
@@ -118,9 +135,9 @@ class _ChatPageState extends State<ChatPage> {
   void scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeOut
+        _scrollController.position.maxScrollExtent + 100,
+        duration: Duration(milliseconds: 800),
+        curve: Curves.easeOut,
       );
     }
   }
@@ -198,6 +215,23 @@ class _ChatPageState extends State<ChatPage> {
         width: 150,
         height: 150,
         fit: BoxFit.cover,
+        loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+          if (loadingProgress == null) {
+            return child;
+          } else {
+            return SizedBox(
+              width: 150,
+              height: 150,
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                      : null,
+                ),
+              ),
+            );
+          }
+        },
       );
     } else {
       return SizedBox.shrink();
@@ -209,7 +243,7 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "${otherUsername ?? 'Yükleniyor...'}",
+          "${otherUsername ?? 'Loading...'}",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Color(0xFF00A9B7),
