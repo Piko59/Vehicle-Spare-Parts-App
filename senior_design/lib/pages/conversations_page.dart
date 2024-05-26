@@ -3,7 +3,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'chat_page.dart'; // ChatPage sayfasının import edilmesi
 import 'new_conversation_page.dart'; // ChatPage sayfasının import edilmesi
 
-
 class ConversationsPage extends StatefulWidget {
   final String userId;
 
@@ -25,12 +24,18 @@ class _ConversationsPageState extends State<ConversationsPage> {
         .equalTo(true);
   }
 
+  Future<String> _getUserName(String userId) async {
+    DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId/username');
+    DatabaseEvent event = await userRef.once();
+    return event.snapshot.value as String? ?? 'Unknown';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Conversations"),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF00A9B7), // Yeni renk burada ayarlandı
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -53,26 +58,58 @@ class _ConversationsPageState extends State<ConversationsPage> {
             // Güvenli bir şekilde Map'e dönüştür
             var snapshotData = snapshot.data!.snapshot.value;
             if (snapshotData is Map<dynamic, dynamic>) {
+              // Mesajları zaman damgasına göre sıralayın
+              var sortedConversations = snapshotData.entries.toList()
+                ..sort((a, b) {
+                  var aMessages = a.value['messages'] ?? {};
+                  var bMessages = b.value['messages'] ?? {};
+                  var aLastMessageTime = aMessages.values.isNotEmpty ? aMessages.values.last['timestamp'] : 0;
+                  var bLastMessageTime = bMessages.values.isNotEmpty ? bMessages.values.last['timestamp'] : 0;
+                  return bLastMessageTime.compareTo(aLastMessageTime);
+                });
+
               return ListView(
-                children: snapshotData.entries.map((entry) {
+                children: sortedConversations.map((entry) {
                   var key = entry.key;
                   var value = Map<String, dynamic>.from(entry.value);
                   var lastMessage = value['messages']?.values?.last['text'] ?? 'No messages yet';
-                  var participantNames = Map<String, String>.from(value['participantNames']);
-                  var otherUserId = participantNames.keys.firstWhere((id) => id != widget.userId, orElse: () => '');
-                  var participantName = participantNames[otherUserId] ?? 'Unknown';
+                  var participants = Map<String, dynamic>.from(value['participants']);
+                  var otherUserId = participants.keys.firstWhere((id) => id != widget.userId, orElse: () => '');
 
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: AssetImage('assets/default_user.png'), 
-                    ),
-                    title: Text(participantName),
-                    subtitle: Text(lastMessage),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ChatPage(conversationId: key)),
-                      );
+                  return FutureBuilder<String>(
+                    future: _getUserName(otherUserId),
+                    builder: (context, userSnapshot) {
+                      if (userSnapshot.connectionState == ConnectionState.waiting) {
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: AssetImage('assets/default_user.png'),
+                          ),
+                          title: Text('Loading...'),
+                          subtitle: Text(lastMessage),
+                        );
+                      } else if (userSnapshot.hasError) {
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: AssetImage('assets/default_user.png'),
+                          ),
+                          title: Text('Error loading name'),
+                          subtitle: Text(lastMessage),
+                        );
+                      } else {
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: AssetImage('assets/default_user.png'),
+                          ),
+                          title: Text(userSnapshot.data ?? 'Unknown'),
+                          subtitle: Text(lastMessage),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => ChatPage(conversationId: key)),
+                            );
+                          },
+                        );
+                      }
                     },
                   );
                 }).toList(),

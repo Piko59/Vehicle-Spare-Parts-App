@@ -21,6 +21,7 @@ dependencies:
   google_sign_in: ^5.4.1
   flutter_signin_button: ^2.0.0
   sign_in_with_apple: ^4.0.0
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
