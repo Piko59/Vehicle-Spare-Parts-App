@@ -11,12 +11,29 @@ class BicycleCategoriesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bisiklet Kategorileri'),
+        backgroundColor: Color(0xFF00A9B7),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Bisiklet Kategorileri',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: ListView.builder(
         itemCount: bicycleCategories.length,
         itemBuilder: (context, index) => ListTile(
-          title: Text(bicycleCategories[index]),
+          title: Text(
+            bicycleCategories[index],
+            style: TextStyle(
+              fontSize: 18.0, // Yazı tipi boyutunu artırdık
+              fontWeight: FontWeight.bold, // Yazı tipi kalın
+            ),
+          ),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(

@@ -24,8 +24,15 @@ class _NewConversationPageState extends State<NewConversationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Start New Conversation"),
-        backgroundColor: Colors.blue,
+        title: Text(
+          "Start New Conversation",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFF00A9B7),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: StreamBuilder<DatabaseEvent>(
         stream: _usersRef.onValue,

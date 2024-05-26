@@ -36,6 +36,8 @@ class _ConversationsPageState extends State<ConversationsPage> {
       appBar: AppBar(
         title: Text("Conversations"),
         backgroundColor: Color(0xFF00A9B7), // Yeni renk burada ayarlandı
+        iconTheme: IconThemeData(color: Colors.white), // AppBar'daki ikonların rengini beyaz yapar
+        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold), // Başlığı beyaz yapar
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -82,7 +84,7 @@ class _ConversationsPageState extends State<ConversationsPage> {
                       if (userSnapshot.connectionState == ConnectionState.waiting) {
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/default_user.png'),
+                            backgroundImage: AssetImage('assets/default_user_image.jpg'),
                           ),
                           title: Text('Loading...'),
                           subtitle: Text(lastMessage),
@@ -90,7 +92,7 @@ class _ConversationsPageState extends State<ConversationsPage> {
                       } else if (userSnapshot.hasError) {
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/default_user.png'),
+                            backgroundImage: AssetImage('assets/default_user_image.jpg'),
                           ),
                           title: Text('Error loading name'),
                           subtitle: Text(lastMessage),
@@ -98,7 +100,7 @@ class _ConversationsPageState extends State<ConversationsPage> {
                       } else {
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: AssetImage('assets/default_user.png'),
+                            backgroundImage: AssetImage('assets/default_user_image.jpg'),
                           ),
                           title: Text(userSnapshot.data ?? 'Unknown'),
                           subtitle: Text(lastMessage),

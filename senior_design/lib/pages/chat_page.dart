@@ -208,8 +208,13 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${otherUsername ?? 'Yükleniyor...'}"),
-        backgroundColor: Color(0xFF00A9B7),  // AppBar rengini ayarlayın
+        title: Text(
+          "${otherUsername ?? 'Yükleniyor...'}",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Color(0xFF00A9B7),
+        iconTheme: IconThemeData(color: Colors.white),
+        actionsIconTheme: IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: <Widget>[

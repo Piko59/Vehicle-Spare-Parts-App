@@ -1,8 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
 import '../utils/user_manager.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -16,34 +13,72 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isBusiness = false;
 
-  // Personal fields
-  String _firstName = '';
-  String _lastName = '';
-  String _phoneNumber = '';
-  String _address = '';
-  String _profileImage = '';
+  // Common fields
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
-  // Business fields
-  String _businessName = '';
-  String _businessCategory = 'Lastikçi'; // Default category set
-  String _businessPhoneNumber = '';
-  String _businessAddress = '';
-  String _businessImage = '';
+  // Business specific field
+  String _businessCategory = 'Tire Shop'; // Default category set
 
   List<String> businessCategories = [
-    'Lastikçi',
-    'Göçükçü',
-    'Karbüratörcü',
-    'Modifiyeci',
-    'Motor Arıza',
-    'Kaportacı'
+    'Tire Shop',
+    'Dent Repair',
+    'Carburetor Repair',
+    'Modification Shop',
+    'Engine Repair',
+    'Body Shop'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    String? userId = UserManager.currentUserId;
+    if (userId != null) {
+      DataSnapshot snapshot = await _databaseReference.child(userId).get();
+      if (snapshot.exists) {
+        Map<String, dynamic> userData = Map<String, dynamic>.from(snapshot.value as Map);
+        setState(() {
+          _isBusiness = userData['profileType'] == 'business';
+          _nameController.text = userData['name'];
+          _usernameController.text = userData['username']; // Veritabanından username'i al
+          _phoneNumberController.text = userData['phoneNumber'];
+          _addressController.text = userData['address'];
+          if (_isBusiness) {
+            _businessCategory = userData['businessCategory'];
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _usernameController.dispose();
+    _phoneNumberController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Profile'),
+        title: Text(
+          'Edit Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFF00A9B7),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -61,28 +96,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 },
               ),
               if (!_isBusiness) ...[
-                _buildTextInput('First Name', (value) => _firstName = value),
-                _buildTextInput('Last Name', (value) => _lastName = value),
-                _buildTextInput(
-                    'Phone Number', (value) => _phoneNumber = value),
-                _buildTextInput(
-                    'Address (City / District)', (value) => _address = value),
-                _buildImageInput('Profile Image', (url) => _profileImage = url),
+                _buildTextInput('Name', _nameController),
+                _buildTextInput('Username', _usernameController),
+                _buildTextInput('Phone Number', _phoneNumberController),
+                _buildTextInput('Address (City / District)', _addressController),
               ] else ...[
-                _buildTextInput(
-                    'Business Name', (value) => _businessName = value),
+                _buildTextInput('Business Name', _nameController),
                 _buildBusinessCategoryDropdown(),
-                _buildTextInput('Business Phone Number',
-                    (value) => _businessPhoneNumber = value),
-                _buildTextInput('Business Address (City / District)',
-                    (value) => _businessAddress = value),
-                _buildImageInput(
-                    'Business Image', (url) => _businessImage = url),
+                _buildTextInput('Business Phone Number', _phoneNumberController),
+                _buildTextInput('Business Address (City / District)', _addressController),
               ],
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveProfile,
-                child: Text('Save'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00A9B7),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                child: Text(
+                  'Save',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -91,61 +126,52 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildTextInput(String label, Function(String) onChanged) {
-    return TextFormField(
-      decoration: InputDecoration(labelText: label),
-      onChanged: onChanged,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter $label';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildImageInput(String label, Function(String) onSaved) {
-    return TextFormField(
-      decoration: InputDecoration(
-        labelText: label,
-        suffixIcon: IconButton(
-          icon: Icon(Icons.camera_alt),
-          onPressed: () => _pickAndUploadImage(label, onSaved),
+  Widget _buildTextInput(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
         ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
       ),
-      readOnly: true,
-      controller: TextEditingController(
-          text: label.contains('Profile') ? _profileImage : _businessImage),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please upload an image';
-        }
-        return null;
-      },
     );
   }
 
   Widget _buildBusinessCategoryDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _businessCategory,
-      decoration: InputDecoration(labelText: 'Business Category'),
-      items: businessCategories
-          .map((String category) => DropdownMenuItem<String>(
-                value: category,
-                child: Text(category),
-              ))
-          .toList(),
-      onChanged: (String? newValue) {
-        setState(() {
-          _businessCategory = newValue!;
-        });
-      },
-      validator: (String? value) {
-        if (value == null || value.isEmpty) {
-          return 'Please select a business category';
-        }
-        return null;
-      },
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: DropdownButtonFormField<String>(
+        value: _businessCategory,
+        decoration: InputDecoration(
+          labelText: 'Business Category',
+          border: OutlineInputBorder(),
+        ),
+        items: businessCategories
+            .map((String category) => DropdownMenuItem<String>(
+                  value: category,
+                  child: Text(category),
+                ))
+            .toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            _businessCategory = newValue!;
+          });
+        },
+        validator: (String? value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a business category';
+          }
+          return null;
+        },
+      ),
     );
   }
 
@@ -154,24 +180,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
       String? userId = UserManager.currentUserId;
       if (userId != null) {
         Map<String, dynamic> profileData = {
+          'name': _nameController.text,
+          'username': _usernameController.text,
+          'phoneNumber': _phoneNumberController.text,
           'profileType': _isBusiness ? 'business' : 'personal',
-          'profile': _isBusiness
-              ? {
-                  'businessName': _businessName,
-                  'businessCategory': _businessCategory,
-                  'phoneNumber': _businessPhoneNumber,
-                  'address': _businessAddress,
-                  'businessImage': _businessImage,
-                  'rating': 0, // Başlangıç değeri olarak 0 verilmiştir.
-                }
-              : {
-                  'firstName': _firstName,
-                  'lastName': _lastName,
-                  'phoneNumber': _phoneNumber,
-                  'address': _address,
-                  'profileImage': _profileImage,
-                },
+          'address': _addressController.text,
         };
+
+        if (_isBusiness) {
+          profileData['businessCategory'] = _businessCategory;
+        }
+
         _databaseReference.child(userId).update(profileData).then((_) {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Profile updated successfully')));
@@ -180,30 +199,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Error: $error')));
         });
-      }
-    }
-  }
-
-  Future<void> _pickAndUploadImage(
-      String label, Function(String) onSaved) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      File file = File(pickedFile.path);
-      try {
-        String? userId = UserManager.currentUserId;
-        String imageType = label.contains('Profile') ? 'profile' : 'business';
-        String filePath =
-            'user_images/$userId/$imageType/${DateTime.now().millisecondsSinceEpoch}.jpg';
-        await FirebaseStorage.instance.ref(filePath).putFile(file);
-        String downloadURL =
-            await FirebaseStorage.instance.ref(filePath).getDownloadURL();
-        setState(() {
-          onSaved(downloadURL);
-        });
-      } catch (e) {
-        print('Error uploading image: $e');
       }
     }
   }

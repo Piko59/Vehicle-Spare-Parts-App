@@ -11,12 +11,29 @@ class MotorcycleCategoriesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Motorsiklet Kategorileri'),
+        backgroundColor: Color(0xFF00A9B7),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Motorsiklet Kategorileri',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: ListView.builder(
         itemCount: motorcycleCategories.length,
         itemBuilder: (context, index) => ListTile(
-          title: Text(motorcycleCategories[index]),
+          title: Text(
+            motorcycleCategories[index],
+            style: TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(

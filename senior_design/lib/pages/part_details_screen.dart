@@ -23,7 +23,15 @@ class PartDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Part Detayları'),
+        title: Text(
+          'Part Detayları',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFF00A9B7),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20.0),
@@ -34,7 +42,7 @@ class PartDetailScreen extends StatelessWidget {
             Center(
               child: Text(
                 title,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
               ),
             ),
             SizedBox(height: 10),
@@ -83,7 +91,16 @@ class PartDetailScreen extends StatelessWidget {
               onPressed: () {
                 // Mesaj gönderme işlemi
               },
-              child: Text('Mesaj Gönder'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF00A9B7), // Button rengi
+              ),
+              child: Text(
+                'Mesaj Gönder',
+                style: TextStyle(
+                  color: Colors.white, // Buton yazısı rengi
+                  fontWeight: FontWeight.bold, // Yazı tipi kalın
+                ),
+              ),
             ),
           ],
         ),

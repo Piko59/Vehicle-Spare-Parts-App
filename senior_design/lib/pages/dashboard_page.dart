@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-
-import '../widgets/search_app_bar.dart';
-import '../widgets/vehicle_part_icons.dart';
-import '../widgets/popular_stores.dart';
+import 'package:senior_design/pages/car_categories_page.dart';
+import 'package:senior_design/pages/motorcycle_categories_page.dart';
+import 'package:senior_design/pages/bicycle_categories_page.dart';
 import 'add_part_screen.dart';
 import 'profile_page.dart';
 import 'conversations_page.dart';
@@ -18,6 +17,7 @@ class _DashboardPageState extends State<DashboardPage> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 0;
   String? _currentUserId;
+  String? _userName;
 
   List<String> businessCategories = [
     'Lastikçi',
@@ -35,9 +35,20 @@ class _DashboardPageState extends State<DashboardPage> {
       if (user != null) {
         setState(() {
           _currentUserId = user.uid;
+          _fetchUserName(user.uid);
         });
       }
     });
+  }
+
+  Future<void> _fetchUserName(String uid) async {
+    DatabaseReference ref = FirebaseDatabase.instance.reference().child('users').child(uid).child('name');
+    DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
+    if (snapshot.exists) {
+      setState(() {
+        _userName = snapshot.value as String?;
+      });
+    }
   }
 
   void _showEmergencyDialog(BuildContext context) {
@@ -103,52 +114,55 @@ class _DashboardPageState extends State<DashboardPage> {
         MaterialPageRoute(builder: (context) => ProfilePage()),
       );
     }
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: SearchAppBar(searchController: _searchController),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            VehiclePartIcons(),
-            PopularStores(),
-          ],
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: SearchAppBar(
+          searchController: _searchController,
+          userName: _userName ?? 'Guest',
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showEmergencyDialog(context);
-        },
-        backgroundColor: Colors.red,
-        child: Icon(Icons.warning),
-      ),
-      bottomNavigationBar: SizedBox(
-        height: 70,
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _selectedIndex,
-          selectedItemColor: Color(0xFF00A9B7),
-          unselectedItemColor: Colors.grey,
-          selectedFontSize: 10.0,
-          unselectedFontSize: 10.0,
-          iconSize: 28.0,
-          onTap: _onItemTapped,
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.explore), label: 'Explore'),
-            BottomNavigationBarItem(
-              icon: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddPartScreen()),
-                  );
-                },
-                child: Container(
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              VehiclePartIcons(),
+              PopularStores(),
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _showEmergencyDialog(context);
+          },
+          backgroundColor: Colors.red,
+          child: Icon(Icons.warning),
+        ),
+        bottomNavigationBar: SizedBox(
+          height: 70,
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: _selectedIndex,
+            selectedItemColor: Color(0xFF00A9B7),
+            unselectedItemColor: Colors.grey,
+            selectedFontSize: 10.0,
+            unselectedFontSize: 10.0,
+            iconSize: 28.0,
+            onTap: _onItemTapped,
+            items: [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.explore), label: 'Explore'),
+              BottomNavigationBarItem(
+                icon: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.green,
@@ -160,12 +174,12 @@ class _DashboardPageState extends State<DashboardPage> {
                     size: 30.0,
                   ),
                 ),
+                label: '',
               ),
-              label: '',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
+              BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+            ],
+          ),
         ),
       ),
     );
@@ -253,6 +267,186 @@ class BusinessListPage extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+}
+
+class PopularStores extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Popular Stores', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              TextButton(
+                onPressed: () {},
+                child: Text('See All', style: TextStyle(color: Colors.blue)),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          height: 200,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              StoreTile(
+                name: 'Kaportacı Emre Usta',
+                distance: '1.7 km',
+                imageUrl: 'assets/kaportaci1.jpg',
+                rating: 4.5,
+                reviews: 744
+              ),
+              StoreTile(
+                name: 'Semizler Kardeş Servis',
+                distance: '1.9 km',
+                imageUrl: 'assets/kaportaci2.jpg',
+                rating: 4.5,
+                reviews: 744
+              ),
+              // Daha fazla StoreTile widget'ı eklenebilir
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// AppBar widget'ı
+class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final TextEditingController searchController;
+  final String userName;
+
+  SearchAppBar({Key? key, required this.searchController, required this.userName}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Color(0xFF00A9B7),
+      flexibleSpace: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text('Welcome, $userName', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'What do you want?',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20.0),
+                child: Image.asset('assets/map_placeholder.png', fit: BoxFit.cover),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(360.0);
+}
+
+class StoreTile extends StatelessWidget {
+  final String name;
+  final String distance;
+  final String imageUrl;
+  final double rating;
+  final int reviews;
+
+  const StoreTile({Key? key, required this.name, required this.distance, required this.imageUrl, required this.rating, required this.reviews}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 180,
+      margin: EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Image.asset(imageUrl, fit: BoxFit.cover),
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.star, color: Colors.blue, size: 20),
+              SizedBox(width: 4),
+              Text('$rating($reviews)', style: TextStyle(color: Colors.black)),
+            ],
+          ),
+          SizedBox(height: 4),
+          Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(distance),
+        ],
+      ),
+    );
+  }
+}
+
+class VehiclePartIcons extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            'Search Vehicles Part Spares',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              icon: Icon(Icons.directions_car, size: 50),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CarCategoriesPage()));
+              },
+            ),
+            SizedBox(width: 20),
+            IconButton(
+              icon: Icon(Icons.directions_bike, size: 50),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => BicycleCategoriesPage()));
+              },
+            ),
+            SizedBox(width: 20),
+            IconButton(
+              icon: Icon(Icons.motorcycle, size: 50),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => MotorcycleCategoriesPage()));
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

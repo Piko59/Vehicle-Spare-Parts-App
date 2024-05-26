@@ -12,7 +12,18 @@ class CategoryDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('$category Kategorisi - $partCategory'),
+        backgroundColor: Color(0xFF00A9B7),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          '$category Kategorisi - $partCategory',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
@@ -42,7 +53,13 @@ class CategoryDetailPage extends StatelessWidget {
                   width: 50,
                   fit: BoxFit.cover,
                 ),
-                title: Text(part['title']),
+                title: Text(
+                  part['title'],
+                  style: TextStyle(
+                    fontSize: 18.0, // Yazı tipi boyutunu artırdık
+                    fontWeight: FontWeight.bold, // Yazı tipi kalın
+                  ),
+                ),
                 subtitle: Text('Price: \$${part['price']}'),
                 onTap: () {
                   Navigator.push(

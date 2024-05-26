@@ -123,7 +123,7 @@ class _AddPartScreenState extends State<AddPartScreen> {
         'image_url': imageUrl,
         'vehicle_type': _selectedVehicleType,
         'category': _selectedCategory,
-        'partCategory': _selectedPartCategory, // Değişiklik yapıldı
+        'partCategory': _selectedPartCategory,
         'brand': _selectedBrand,
         'title': _titleController.text,
         'year': int.parse(_yearController.text),
@@ -165,46 +165,50 @@ class _AddPartScreenState extends State<AddPartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Part'),
+        title: Text(
+          'Add Part',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFF00A9B7),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            if (_image != null) Image.file(_image!),
-            ElevatedButton(
-              onPressed: _uploadImage,
-              child: Text('Select Image'),
-            ),
-            DropdownButton<String>(
-              value: _selectedVehicleType,
-              hint: Text('Select Vehicle Type'),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedVehicleType = newValue;
-                  _selectedCategory = null;
-                  _selectedBrand = null;
-                });
-              },
-              items: vehicleCategories.keys
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-            if (_selectedVehicleType != null)
-              DropdownButton<String>(
-                value: _selectedCategory,
-                hint: Text('Select Category'),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          child: ListView(
+            children: <Widget>[
+              if (_image != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Image.file(_image!),
+                ),
+              ElevatedButton(
+                onPressed: _uploadImage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00A9B7),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                child: Text('Select Image', style: TextStyle(color: Colors.white)),
+              ),
+              SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: _selectedVehicleType,
+                decoration: InputDecoration(
+                  labelText: 'Select Vehicle Type',
+                  border: OutlineInputBorder(),
+                ),
                 onChanged: (String? newValue) {
                   setState(() {
-                    _selectedCategory = newValue;
-                    // Kategori seçildiğinde partCategory değişkenine seçilen kategori ekleniyor
-                    _selectedPartCategory = newValue;
+                    _selectedVehicleType = newValue;
+                    _selectedCategory = null;
+                    _selectedBrand = null;
                   });
                 },
-                items: vehicleCategories[_selectedVehicleType]!
+                items: vehicleCategories.keys
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -212,61 +216,96 @@ class _AddPartScreenState extends State<AddPartScreen> {
                   );
                 }).toList(),
               ),
-            if (_selectedVehicleType != null)
-              DropdownButton<String>(
-                value: _selectedBrand,
-                hint: Text('Select Brand'),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedBrand = newValue;
-                  });
-                },
-                items: vehicleBrands[_selectedVehicleType]!
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
-            ),
-            TextField(
-              controller: _yearController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Year'),
-            ),
-            Row(
-              children: [
-                Text('Is New?'),
-                Checkbox(
-                  value: _isNew,
-                  onChanged: (bool? value) {
+              if (_selectedVehicleType != null)
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: InputDecoration(
+                    labelText: 'Select Category',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (String? newValue) {
                     setState(() {
-                      _isNew = value ?? true;
+                      _selectedCategory = newValue;
+                      _selectedPartCategory = newValue;
                     });
                   },
+                  items: vehicleCategories[_selectedVehicleType]!
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                 ),
-              ],
-            ),
-            TextField(
-              controller: _priceController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(labelText: 'Price'),
-            ),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 3,
-              decoration: InputDecoration(labelText: 'Description'),
-            ),
-            ElevatedButton(
-              onPressed: _savePart,
-              child: Text('Save Part'),
-            ),
-          ],
+              if (_selectedVehicleType != null)
+                DropdownButtonFormField<String>(
+                  value: _selectedBrand,
+                  decoration: InputDecoration(
+                    labelText: 'Select Brand',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedBrand = newValue;
+                    });
+                  },
+                  items: vehicleBrands[_selectedVehicleType]!
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              _buildTextInput('Title', _titleController),
+              _buildTextInput('Year', _yearController),
+              Row(
+                children: [
+                  Text('Is New?'),
+                  Checkbox(
+                    value: _isNew,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _isNew = value ?? true;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              _buildTextInput('Price', _priceController),
+              _buildTextInput('Description', _descriptionController),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _savePart,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF00A9B7),
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                child: Text('Save Part', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextInput(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
       ),
     );
   }
