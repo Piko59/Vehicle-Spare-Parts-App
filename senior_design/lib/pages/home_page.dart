@@ -7,6 +7,7 @@ import 'package:senior_design/pages/bicycle_categories_page.dart';
 import 'add_part_page.dart';
 import 'profile_page.dart';
 import 'conversations_page.dart';
+import 'fullscreen_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -40,7 +41,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchUserName(String uid) async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference().child('users').child(uid).child('name');
+    DatabaseReference ref = FirebaseDatabase.instance
+        .reference()
+        .child('users')
+        .child(uid)
+        .child('name');
     DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
     if (snapshot.exists) {
       setState(() {
@@ -98,8 +103,7 @@ class _HomePageState extends State<HomePage> {
     } else if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(
-            builder: (context) => ConversationsPage()),
+        MaterialPageRoute(builder: (context) => ConversationsPage()),
       );
     } else if (index == 4) {
       Navigator.push(
@@ -110,6 +114,13 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _navigateToFullScreenMap(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => FullscreenPage()),
+    );
   }
 
   @override
@@ -132,12 +143,27 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            _showEmergencyDialog(context);
-          },
-          backgroundColor: Colors.red,
-          child: Icon(Icons.warning),
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              onPressed: () {
+                _showEmergencyDialog(context);
+              },
+              backgroundColor: Colors.red,
+              child: Icon(Icons.warning),
+              heroTag: 'emergency',
+            ),
+            SizedBox(height: 10),
+            FloatingActionButton(
+              onPressed: () {
+                _navigateToFullScreenMap(context);
+              },
+              backgroundColor: Colors.green,
+              child: Icon(Icons.map),
+              heroTag: 'map',
+            ),
+          ],
         ),
       ),
     );
@@ -240,7 +266,8 @@ class PopularStores extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Popular Stores', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text('Popular Stores',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               TextButton(
                 onPressed: () {},
                 child: Text('See All', style: TextStyle(color: Colors.blue)),
@@ -254,19 +281,17 @@ class PopularStores extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             children: [
               StoreTile(
-                name: 'Kaportacı Emre Usta',
-                distance: '1.7 km',
-                imageUrl: 'assets/kaportaci1.jpg',
-                rating: 4.5,
-                reviews: 744
-              ),
+                  name: 'Kaportacı Emre Usta',
+                  distance: '1.7 km',
+                  imageUrl: 'assets/kaportaci1.jpg',
+                  rating: 4.5,
+                  reviews: 744),
               StoreTile(
-                name: 'Semizler Kardeş Servis',
-                distance: '1.9 km',
-                imageUrl: 'assets/kaportaci2.jpg',
-                rating: 4.5,
-                reviews: 744
-              ),
+                  name: 'Semizler Kardeş Servis',
+                  distance: '1.9 km',
+                  imageUrl: 'assets/kaportaci2.jpg',
+                  rating: 4.5,
+                  reviews: 744),
               // Daha fazla StoreTile widget'ı eklenebilir
             ],
           ),
@@ -276,12 +301,13 @@ class PopularStores extends StatelessWidget {
   }
 }
 
-// AppBar widget'ı
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController searchController;
   final String userName;
 
-  SearchAppBar({Key? key, required this.searchController, required this.userName}) : super(key: key);
+  SearchAppBar(
+      {Key? key, required this.searchController, required this.userName})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -292,7 +318,11 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
           children: [
             Padding(
               padding: EdgeInsets.all(8.0),
-              child: Text('Welcome, $userName', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              child: Text('Welcome, $userName',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -309,13 +339,6 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20.0),
-                child: Image.asset('assets/map_placeholder.png', fit: BoxFit.cover),
-              ),
-            ),
           ],
         ),
       ),
@@ -323,7 +346,8 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(360.0);
+  Size get preferredSize =>
+      Size.fromHeight(160.0); // Adjust the preferred size accordingly
 }
 
 class StoreTile extends StatelessWidget {
@@ -333,7 +357,14 @@ class StoreTile extends StatelessWidget {
   final double rating;
   final int reviews;
 
-  const StoreTile({Key? key, required this.name, required this.distance, required this.imageUrl, required this.rating, required this.reviews}) : super(key: key);
+  const StoreTile(
+      {Key? key,
+      required this.name,
+      required this.distance,
+      required this.imageUrl,
+      required this.rating,
+      required this.reviews})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -385,21 +416,30 @@ class VehiclePartIcons extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.directions_car, size: 50),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CarCategoriesPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CarCategoriesPage()));
               },
             ),
             SizedBox(width: 20),
             IconButton(
               icon: Icon(Icons.directions_bike, size: 50),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => BicycleCategoriesPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => BicycleCategoriesPage()));
               },
             ),
             SizedBox(width: 20),
             IconButton(
               icon: Icon(Icons.motorcycle, size: 50),
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => MotorcycleCategoriesPage()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MotorcycleCategoriesPage()));
               },
             ),
           ],
