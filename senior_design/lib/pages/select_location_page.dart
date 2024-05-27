@@ -15,7 +15,9 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
   @override
   void initState() {
     super.initState();
-    _checkPermissions();
+    _checkPermissions().then((_) {
+      _setInitialLocation();
+    });
   }
 
   Future<void> _checkPermissions() async {
@@ -36,6 +38,24 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
       if (_permissionGranted != PermissionStatus.granted) {
         return;
       }
+    }
+  }
+
+  Future<void> _setInitialLocation() async {
+    LocationData currentLocation = await _location.getLocation();
+    setState(() {
+      _selectedLocation =
+          LatLng(currentLocation.latitude!, currentLocation.longitude!);
+    });
+    if (_mapController != null) {
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: _selectedLocation!,
+            zoom: 14.0,
+          ),
+        ),
+      );
     }
   }
 
@@ -71,9 +91,16 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
             myLocationButtonEnabled: false,
             onMapCreated: (GoogleMapController controller) {
               _mapController = controller;
+              _setInitialLocation(); // Set initial location when map is created
               _location.onLocationChanged
                   .listen((LocationData currentLocation) {
                 if (_selectedLocation == null) {
+                  setState(() {
+                    _selectedLocation = LatLng(
+                      currentLocation.latitude!,
+                      currentLocation.longitude!,
+                    );
+                  });
                   _mapController?.animateCamera(
                     CameraUpdate.newCameraPosition(
                       CameraPosition(
