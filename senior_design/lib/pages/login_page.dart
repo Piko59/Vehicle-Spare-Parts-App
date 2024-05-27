@@ -1,202 +1,253 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:senior_design/components/my_textfield.dart';
-import 'package:senior_design/components/sign_in_button.dart';
 import 'sign_up_page.dart';
 import 'main_page.dart';
 import 'forget_password_page.dart';
 import '../utils/user_manager.dart';
+import 'package:senior_design/components/square_tile.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   void signInUser(BuildContext context) async {
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
+    if (_formKey.currentState!.validate()) {
+      String email = emailController.text.trim();
+      String password = passwordController.text.trim();
 
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
+      try {
+        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+            email: email, password: password);
 
-      if (userCredential.user != null) {
-        String userId = userCredential.user!.uid;
-        UserManager.login(userId);
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => MainPage()));
-      } else {
+        if (userCredential.user != null) {
+          String userId = userCredential.user!.uid;
+          UserManager.login(userId);
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => MainPage()));
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('No user found.')));
+        }
+      } catch (e) {
+        String errorMessage = 'An error occurred. Please try again.';
+        if (e is FirebaseAuthException) {
+          errorMessage = e.message ?? errorMessage;
+        }
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No user found.')));
+            .showSnackBar(SnackBar(content: Text(errorMessage)));
       }
-    } catch (e) {
-      String errorMessage = 'An error occurred. Please try again.';
-      if (e is FirebaseAuthException) {
-        errorMessage = e.message ?? errorMessage;
-      }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(errorMessage)));
-    }
-  }
-
-  Future<void> signInWithGoogle(BuildContext context) async {
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-        final OAuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        await _auth.signInWithCredential(credential);
-        Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => MainPage()));
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Failed to sign in with Google: ${e.toString()}")));
-    }
-  }
-
-  Future<void> signInWithApple(BuildContext context) async {
-    try {
-      final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-      final OAuthCredential oauthCredential =
-          OAuthProvider("apple.com").credential(
-        idToken: credential.identityToken,
-        accessToken: credential.authorizationCode,
-      );
-      await _auth.signInWithCredential(oauthCredential);
-      Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (_) => MainPage()));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Failed to sign in with Apple: ${e.toString()}")));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                const Icon(Icons.lock, size: 100, color: Colors.black),
-                const SizedBox(height: 50),
-                Text(
-                  'Welcome back you\'ve been missed!',
-                  style: TextStyle(color: Colors.grey[700], fontSize: 16),
-                ),
-                const SizedBox(height: 75),
-                MyTextField(
-                  controller: emailController,
-                  hintText: 'Email',
-                  obscureText: false,
-                  prefixIcon: const Icon(Icons.email, color: Colors.black),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: passwordController,
-                  hintText: 'Password',
-                  obscureText: true,
-                  prefixIcon: Icon(Icons.lock, color: Colors.black),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 60),
+                  Image.asset(
+                    'assets/logo.png',
+                    height: 150,
+                    width: 150,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Welcome,',
+                    style: TextStyle(color: Colors.black, fontSize: 32, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    'Glad to see you!',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                  const SizedBox(height: 35),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: TextFormField(
+                      autofocus: false,
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: const Icon(Icons.email, color: Colors.black),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => emailController.clear(),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty || !value.contains('@')) {
+                          return 'Please enter a valid email address.';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: TextFormField(
+                      autofocus: false,
+                      controller: passwordController,
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => passwordController.clear(),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                        ),
+                      ),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty || value.length < 6) {
+                          return 'Password must be at least 6 characters.';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ForgetPasswordPage()),
+                            );
+                          },
+                          child: Text(
+                            'Forgot Password?',
+                            style: TextStyle(
+                                color: Colors.grey[600]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: ElevatedButton(
+                      onPressed: () => signInUser(context),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(15.0),
+                          alignment: Alignment.center,
+                          constraints: BoxConstraints(minHeight: 50),
+                          child: const Text(
+                            'Sign In',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Divider(thickness: 0.5, color: Colors.grey[400]),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Text(
+                            'Or continue with',
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(thickness: 0.5, color: Colors.grey[400]),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  const Wrap(
+                    spacing: 25.0,
+                    alignment: WrapAlignment.center,
                     children: [
+                      SquareTile(imagePath: 'lib/images/google.png'),
+                      SquareTile(imagePath: 'lib/images/apple.png')
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Not a member?',
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                      const SizedBox(width: 4),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => ForgetPasswordPage()),
+                            MaterialPageRoute(builder: (context) => SignUpPage()),
                           );
                         },
-                        child: Text(
-                          'Forgot Password?',
+                        child: const Text(
+                          'Register now',
                           style: TextStyle(
-                              color: Colors.grey[600],
-                              decoration: TextDecoration.underline),
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 25),
-                MyButton(onTap: () => signInUser(context)),
-                const SizedBox(height: 50),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GestureDetector(
-                        onTap: () => signInWithGoogle(context),
-                        child: Image.asset(
-                          "lib/images/google.png",
-                          height: 50,
-                          width: 50,
-                        ),
-                      ),
-                      SizedBox(width: 20), // Space between buttons
-                      GestureDetector(
-                        onTap: () => signInWithApple(context),
-                        child: Image.asset(
-                          "lib/images/apple.png",
-                          height: 50,
-                          width: 50,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Not a member?',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SignUpPage()),
-                        );
-                      },
-                      child: const Text(
-                        'Register now',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),

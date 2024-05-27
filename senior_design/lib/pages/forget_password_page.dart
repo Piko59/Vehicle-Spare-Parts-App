@@ -4,9 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 class ForgetPasswordPage extends StatelessWidget {
   ForgetPasswordPage({super.key});
 
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmNewPasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -19,71 +18,85 @@ class ForgetPasswordPage extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                const Icon(Icons.lock_reset, size: 100, color: Colors.black),
-                const SizedBox(height: 30),
-                Text(
-                  'Reset Your Password',
-                  style: TextStyle(color: Colors.grey[700], fontSize: 16),
-                ),
-                const SizedBox(height: 25),
-                TextFormField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email, color: Colors.black),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock_reset, size: 100, color: Colors.black),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Reset Your Password',
+                    style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: newPasswordController,
-                  decoration: InputDecoration(
-                    labelText: 'New Password',
-                    prefixIcon: Icon(Icons.lock, color: Colors.black),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: confirmNewPasswordController,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
-                    prefixIcon: Icon(Icons.lock_outline, color: Colors.black),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: () => _resetPassword(context),
-                  child: Container(
-                    padding: const EdgeInsets.all(25),
-                    margin: const EdgeInsets.symmetric(horizontal: 25),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 25),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: TextFormField(
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: Icon(Icons.email, color: Colors.black),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty || !value.contains('@')) {
+                          return 'Please enter a valid email address';
+                        }
+                        return null;
+                      },
                     ),
-                    child: const Center(
-                      child: Text(
-                        "Reset Password",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  ),
+                  const SizedBox(height: 30),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: ElevatedButton(
+                      onPressed: () => _resetPassword(context),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(15.0),
+                          alignment: Alignment.center,
+                          constraints: BoxConstraints(minHeight: 50),
+                          child: const Text(
+                            'Reset Password',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
-              ],
+                  const SizedBox(height: 30),
+                ],
+              ),
             ),
           ),
         ),
@@ -92,44 +105,18 @@ class ForgetPasswordPage extends StatelessWidget {
   }
 
   void _resetPassword(BuildContext context) async {
-    if (newPasswordController.text != confirmNewPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Passwords do not match")),
-      );
-      return;
+    if (_formKey.currentState!.validate()) {
+      try {
+        await FirebaseAuth.instance
+            .sendPasswordResetEmail(email: emailController.text.trim());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Reset password link has been sent to your email")),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error resetting password: ${e.toString()}")),
+        );
+      }
     }
-
-    if (!_isPasswordStrong(newPasswordController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                "Password must be 8-16 characters long, include at least one uppercase letter, and at least one number.")),
-      );
-      return;
-    }
-
-    // Since Firebase doesn't support changing the password directly without reauthenticating the user,
-    // we will send a password reset link to the user's email.
-    try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: emailController.text);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("Reset password link has been sent to your email")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error resetting password: ${e.toString()}")),
-      );
-    }
-  }
-
-  bool _isPasswordStrong(String password) {
-    bool hasUppercase = password.contains(RegExp(r'[A-Z]'));
-    bool hasDigits = password.contains(RegExp(r'\d'));
-    return password.length >= 8 &&
-        password.length <= 16 &&
-        hasUppercase &&
-        hasDigits;
   }
 }

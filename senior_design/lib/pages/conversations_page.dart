@@ -77,7 +77,6 @@ class _ConversationsPageState extends State<ConversationsPage> {
         centerTitle: true,
         backgroundColor: Color(0xFF00A9B7),
         iconTheme: IconThemeData(color: Colors.white),
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
