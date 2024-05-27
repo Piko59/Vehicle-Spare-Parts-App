@@ -4,9 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'login_page.dart';
-import 'dashboard_page.dart';
-import 'add_part_screen.dart';
-import 'conversations_page.dart';
+import 'home_page.dart';
 import 'edit_profile_page.dart';
 import '../utils/user_manager.dart';
 import 'package:path/path.dart' as path;
@@ -48,26 +46,6 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       print('Error loading user profile: $e');
-    }
-  }
-
-  void _onItemTapped(int index) {
-    if (index == 0) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => DashboardPage()),
-      );
-    } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AddPartScreen()),
-      );
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => ConversationsPage(userId: userId)),
-      );
     }
   }
 
@@ -141,12 +119,9 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
         title: Text('My Account',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        centerTitle: true,
         backgroundColor: Color(0xFF00A9B7),
         actions: [
           IconButton(
@@ -191,59 +166,13 @@ class _ProfilePageState extends State<ProfilePage> {
           Expanded(
             child: ListView(
               children: <Widget>[
-                _buildMenuButton(
-                    context, Icons.shopping_cart, 'My Orders', DashboardPage()),
-                _buildMenuButton(
-                    context, Icons.settings, 'Settings', DashboardPage()),
-                _buildMenuButton(
-                    context, Icons.exit_to_app, 'Log Out', LoginPage()),
+                _buildMenuButton(context, 'My Orders', HomePage()),
+                _buildMenuButton(context, 'Settings', HomePage()),
+                _buildMenuButton(context, 'Log Out', LoginPage()),
               ],
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: SizedBox(
-        height: 70,
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _selectedIndex,
-          selectedItemColor: Color(0xFF00A9B7),
-          unselectedItemColor: Colors.grey,
-          selectedFontSize: 10.0,
-          unselectedFontSize: 10.0,
-          iconSize: 28.0,
-          onTap: _onItemTapped,
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.explore), label: 'Explore'),
-            BottomNavigationBarItem(
-              icon: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddPartScreen()),
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.green,
-                  ),
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 30.0,
-                  ),
-                ),
-              ),
-              label: '',
-            ),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
-        ),
       ),
     );
   }
@@ -285,12 +214,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuButton(
-      BuildContext context, IconData icon, String title, Widget page) {
+  Widget _buildMenuButton(BuildContext context, String title, Widget page) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 72.0),
       child: ListTile(
-        leading: Icon(icon),
         title: Text(title),
         onTap: () {
           Navigator.push(

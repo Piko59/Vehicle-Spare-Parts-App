@@ -5,7 +5,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:senior_design/components/my_textfield.dart';
 import 'package:senior_design/components/sign_in_button.dart';
 import 'sign_up_page.dart';
-import 'dashboard_page.dart';
+import 'main_page.dart';
 import 'forget_password_page.dart';
 import '../utils/user_manager.dart';
 
@@ -28,7 +28,7 @@ class LoginPage extends StatelessWidget {
         String userId = userCredential.user!.uid;
         UserManager.login(userId);
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => DashboardPage()));
+            MaterialPageRoute(builder: (_) => MainPage()));
       } else {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('No user found.')));
@@ -56,7 +56,7 @@ class LoginPage extends StatelessWidget {
         );
         await _auth.signInWithCredential(credential);
         Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => DashboardPage()));
+            MaterialPageRoute(builder: (_) => MainPage()));
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -79,7 +79,7 @@ class LoginPage extends StatelessWidget {
       );
       await _auth.signInWithCredential(oauthCredential);
       Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (_) => DashboardPage()));
+          .pushReplacement(MaterialPageRoute(builder: (_) => MainPage()));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Failed to sign in with Apple: ${e.toString()}")));
