@@ -26,6 +26,7 @@ dependencies:
   location: ^6.0.2
   geolocator: ^12.0.0
   permission_handler: ^11.3.1
+  flutter_rating_bar: ^4.0.0
 
 dev_dependencies:
   flutter_test:

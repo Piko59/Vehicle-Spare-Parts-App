@@ -71,11 +71,13 @@ class _FullscreenPageState extends State<FullscreenPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => BusinessDetailsPage(
-                    imageUrl: value['imageUrl'] ?? '',
-                    name: value['name'] ?? 'No Name',
+                    businessUid: key,
+                    businessName: value['name'] ?? 'No Name',
+                    businessImageUrl: value['imageUrl'] ?? '',
                     businessCategory:
                         value['businessCategory'] ?? 'No Category',
-                    phoneNumber: value['phoneNumber'] ?? 'No Phone Number',
+                    businessPhoneNumber:
+                        value['phoneNumber'] ?? 'No Phone Number',
                   ),
                 ),
               );
