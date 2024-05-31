@@ -21,10 +21,17 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  void _onFabPressed() {
-    setState(() {
-      _selectedIndex = 2;
-    });
+  Future<void> _onFabPressed() async {
+    bool result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddPartPage()),
+    );
+
+    if (result == true) {
+      setState(() {
+        _selectedIndex = 0; // Geri döndüğümüzde ana sayfaya yönlendiriyoruz
+      });
+    }
   }
 
   @override
@@ -32,7 +39,7 @@ class _MainPageState extends State<MainPage> {
     final List<Widget> _widgetOptions = <Widget>[
       HomePage(),
       ExplorePage(),
-      AddPartPage(),
+      Container(), // Boş bir widget yerleştiriyoruz
       ConversationsPage(),
       ProfilePage(),
     ];
@@ -44,7 +51,7 @@ class _MainPageState extends State<MainPage> {
         selectedFontSize: 14.0,
         unselectedFontSize: 12.0,
         selectedIconTheme: IconThemeData(size: 32.0),
-        unselectedIconTheme: IconThemeData(size: 24.0), 
+        unselectedIconTheme: IconThemeData(size: 24.0),
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

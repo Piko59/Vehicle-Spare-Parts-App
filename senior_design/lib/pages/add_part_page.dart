@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart'; // Realtime Database kütüphanesi
 import 'dart:io';
 import 'home_page.dart';
+import '../utils/user_manager.dart'; // UserManager sınıfını buraya dahil ediyoruz
 
 class AddPartPage extends StatefulWidget {
   @override
@@ -23,6 +26,8 @@ class _AddPartPageState extends State<AddPartPage> {
   String? _selectedCategory;
   String? _selectedBrand;
   String? _selectedPartCategory;
+
+  bool _isLoading = false;
 
   final Map<String, List<String>> vehicleCategories = {
     'Car': [
@@ -107,6 +112,10 @@ class _AddPartPageState extends State<AddPartPage> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final fileName = DateTime.now().millisecondsSinceEpoch.toString();
       firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
@@ -118,8 +127,13 @@ class _AddPartPageState extends State<AddPartPage> {
       firebase_storage.TaskSnapshot taskSnapshot = await uploadTask;
 
       final String imageUrl = await taskSnapshot.ref.getDownloadURL();
+      final userId = UserManager.currentUserId;
 
-      await FirebaseFirestore.instance.collection('parts').add({
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
+      DocumentReference partDocRef = await FirebaseFirestore.instance.collection('parts').add({
         'image_url': imageUrl,
         'vehicle_type': _selectedVehicleType,
         'category': _selectedCategory,
@@ -130,6 +144,13 @@ class _AddPartPageState extends State<AddPartPage> {
         'isNew': _isNew,
         'price': double.parse(_priceController.text),
         'description': _descriptionController.text,
+        'user_id': userId, // Ürünü ekleyen kullanıcı kimliği
+      });
+
+      // Realtime Database'deki kullanıcı belgesine ürün kimliğini ekleme
+      DatabaseReference realtimeUserRef = FirebaseDatabase.instance.ref().child('users').child(userId);
+      await realtimeUserRef.child('products').update({
+        partDocRef.id: true,
       });
 
       _titleController.clear();
@@ -144,20 +165,38 @@ class _AddPartPageState extends State<AddPartPage> {
       _priceController.clear();
       _descriptionController.clear();
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Part added successfully!'),
-      ));
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
+      _showSuccessDialog();
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to add part: $e'),
       ));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Success'),
+          content: Text('Part added successfully!'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.pop(context, true);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -254,10 +293,17 @@ class _AddPartPageState extends State<AddPartPage> {
                 ),
               _buildTextInput('Title', _titleController),
               _buildTextInput('Year', _yearController),
+              _buildTextInput('Price', _priceController),
+              _buildTextInput('Description', _descriptionController),
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text('Is New?'),
-                  Checkbox(
+                  Text(
+                    'Is New? ',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(width: 10),
+                  Switch(
                     value: _isNew,
                     onChanged: (bool? value) {
                       setState(() {
@@ -267,18 +313,18 @@ class _AddPartPageState extends State<AddPartPage> {
                   ),
                 ],
               ),
-              _buildTextInput('Price', _priceController),
-              _buildTextInput('Description', _descriptionController),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _savePart,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF00A9B7),
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                child: Text('Save Part', style: TextStyle(color: Colors.white)),
-              ),
+              SizedBox(height: 10),
+              _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _savePart,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF00A9B7),
+                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      child: Text('Save Part', style: TextStyle(color: Colors.white)),
+                    ),
             ],
           ),
         ),
