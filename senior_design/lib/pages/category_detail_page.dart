@@ -18,7 +18,7 @@ class CategoryDetailPage extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          '$category Kategorisi - $partCategory',
+          '$category Category - $partCategory',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -37,7 +37,7 @@ class CategoryDetailPage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Bir hata oluştu!'));
+            return Center(child: Text('An error occurred!'));
           }
 
           final parts = snapshot.data!.docs;
@@ -56,8 +56,8 @@ class CategoryDetailPage extends StatelessWidget {
                 title: Text(
                   part['title'],
                   style: TextStyle(
-                    fontSize: 18.0, // Yazı tipi boyutunu artırdık
-                    fontWeight: FontWeight.bold, // Yazı tipi kalın
+                    fontSize: 18.0, // Increased font size
+                    fontWeight: FontWeight.bold, // Bold font
                   ),
                 ),
                 subtitle: Text('Price: \$${part['price']}'),

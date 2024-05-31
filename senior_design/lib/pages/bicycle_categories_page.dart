@@ -3,8 +3,8 @@ import 'package:senior_design/pages/category_detail_page.dart';
 
 class BicycleCategoriesPage extends StatelessWidget {
   final List<String> bicycleCategories = [
-    'Gidon', 'Fren', 'Rotor', 'Bilya', 'Jant', 'Kadro', 'Çekiş Parçaları',
-    'Elektrik Parçaları', 'Kokpit', 'Pabuç',
+    'Handlebar', 'Brake', 'Rotor', 'Bearing', 'Rim', 'Frame', 'Drivetrain Components',
+    'Electric Components', 'Cockpit', 'Brake Pad',
   ];
 
   @override
@@ -17,7 +17,7 @@ class BicycleCategoriesPage extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Bisiklet Kategorileri',
+          'Bicycle Categories',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -30,14 +30,14 @@ class BicycleCategoriesPage extends StatelessWidget {
           title: Text(
             bicycleCategories[index],
             style: TextStyle(
-              fontSize: 18.0, // Yazı tipi boyutunu artırdık
-              fontWeight: FontWeight.bold, // Yazı tipi kalın
+              fontSize: 18.0, // Increased font size
+              fontWeight: FontWeight.bold, // Bold font
             ),
           ),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CategoryDetailPage(category: 'Bisiklet', partCategory: bicycleCategories[index]),
+              builder: (context) => CategoryDetailPage(category: 'Bicycle', partCategory: bicycleCategories[index]),
             ),
           ),
         ),

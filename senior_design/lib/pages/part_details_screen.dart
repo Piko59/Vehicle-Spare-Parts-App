@@ -24,7 +24,7 @@ class PartDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Part Detayları',
+          'Part Details',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -89,16 +89,16 @@ class PartDetailScreen extends StatelessWidget {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Mesaj gönderme işlemi
+                // Message sending action
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF00A9B7), // Button rengi
+                backgroundColor: Color(0xFF00A9B7), // Button color
               ),
               child: Text(
-                'Mesaj Gönder',
+                'Send Message',
                 style: TextStyle(
-                  color: Colors.white, // Buton yazısı rengi
-                  fontWeight: FontWeight.bold, // Yazı tipi kalın
+                  color: Colors.white, // Button text color
+                  fontWeight: FontWeight.bold, // Bold font
                 ),
               ),
             ),

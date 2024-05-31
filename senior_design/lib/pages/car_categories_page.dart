@@ -3,8 +3,8 @@ import 'package:senior_design/pages/category_detail_page.dart';
 
 class CarCategoriesPage extends StatelessWidget {
   final List<String> carCategories = [
-    'Ateşleme & Yakıt', 'Egzoz', 'Elektrik', 'Filtre', 'Fren & Debriyaj', 'Isıtma & Havalandırma & Klima',
-    'Mekanik', 'Motor', 'Şanzıman & Vites', 'Yürüyen & Direksiyon',
+    'Ignition & Fuel', 'Exhaust', 'Electrical', 'Filter', 'Brake & Clutch', 'Heating & Ventilation & Air Conditioning',
+    'Mechanical', 'Engine', 'Transmission & Gear', 'Suspension & Steering',
   ];
 
   @override
@@ -17,7 +17,7 @@ class CarCategoriesPage extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Araba Kategorileri',
+          'Car Categories',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -30,14 +30,14 @@ class CarCategoriesPage extends StatelessWidget {
           title: Text(
             carCategories[index],
             style: TextStyle(
-              fontSize: 18.0, // Yazı tipi boyutunu artırdık
-              fontWeight: FontWeight.bold, // Yazı tipi kalın
+              fontSize: 18.0, // Increased font size
+              fontWeight: FontWeight.bold, // Bold font
             ),
           ),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CategoryDetailPage(category: 'Araba', partCategory: carCategories[index]),
+              builder: (context) => CategoryDetailPage(category: 'Car', partCategory: carCategories[index]),
             ),
           ),
         ),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:senior_design/components/square_tile.dart';
 import 'login_page.dart';
+import 'main_page.dart';
+import '../utils/user_manager.dart';
+import 'package:senior_design/components/square_tile.dart';
 
 class SignUpPage extends StatelessWidget {
   SignUpPage({super.key});
@@ -11,29 +12,41 @@ class SignUpPage extends StatelessWidget {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final usernameController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void signUserUp(BuildContext context) async {
+  void signUpUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      try {
-        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailController.text.trim(),
-          password: passwordController.text.trim(),
-        );
+      String email = emailController.text.trim();
+      String password = passwordController.text.trim();
+      String confirmPassword = confirmPasswordController.text.trim();
 
-        FirebaseDatabase.instance.reference().child('users').child(userCredential.user!.uid).set({
-          'username': usernameController.text.trim(),
-          'email': emailController.text.trim()
-        });
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
-        );
-      } catch (e) {
+      if (password != confirmPassword) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
+          const SnackBar(content: Text('Passwords do not match.')),
         );
+        return;
+      }
+
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+            email: email, password: password);
+
+        if (userCredential.user != null) {
+          String userId = userCredential.user!.uid;
+          UserManager.login(userId);
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => MainPage()));
+        } else {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Failed to sign up.')));
+        }
+      } catch (e) {
+        String errorMessage = 'An error occurred. Please try again.';
+        if (e is FirebaseAuthException) {
+          errorMessage = e.message ?? errorMessage;
+        }
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     }
   }
@@ -43,50 +56,41 @@ class SignUpPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
+        child: SingleChildScrollView(
+          child: Center(
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 30),
-                  const Text(
-                    'Create a new account!',
-                    style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 60),
+                  Image.asset(
+                    'assets/logo.png',
+                    height: 150,
+                    width: 150,
                   ),
                   const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: TextFormField(
-                      controller: usernameController,
-                      decoration: InputDecoration(
-                        hintText: 'Username',
-                        prefixIcon: const Icon(Icons.person, color: Colors.black),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a username';
-                        }
-                        return null;
-                      },
-                    ),
+                  const Text(
+                    'Welcome,',
+                    style: TextStyle(color: Colors.black, fontSize: 32, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 10),
+                  const Text(
+                    'Create your account',
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                  const SizedBox(height: 35),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: TextFormField(
+                      autofocus: false,
                       controller: emailController,
                       decoration: InputDecoration(
-                        hintText: 'Email',
+                        labelText: 'Email',
                         prefixIcon: const Icon(Icons.email, color: Colors.black),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => emailController.clear(),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -98,7 +102,7 @@ class SignUpPage extends StatelessWidget {
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty || !value.contains('@')) {
-                          return 'Please enter a valid email address';
+                          return 'Please enter a valid email address.';
                         }
                         return null;
                       },
@@ -108,10 +112,15 @@ class SignUpPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: TextFormField(
+                      autofocus: false,
                       controller: passwordController,
                       decoration: InputDecoration(
-                        hintText: 'Password',
+                        labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => passwordController.clear(),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -123,7 +132,7 @@ class SignUpPage extends StatelessWidget {
                       obscureText: true,
                       validator: (value) {
                         if (value == null || value.isEmpty || value.length < 6) {
-                          return 'Password must be at least 6 characters long';
+                          return 'Password must be at least 6 characters.';
                         }
                         return null;
                       },
@@ -133,10 +142,15 @@ class SignUpPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: TextFormField(
+                      autofocus: false,
                       controller: confirmPasswordController,
                       decoration: InputDecoration(
-                        hintText: 'Confirm Password',
+                        labelText: 'Confirm Password',
                         prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => confirmPasswordController.clear(),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -147,8 +161,8 @@ class SignUpPage extends StatelessWidget {
                       ),
                       obscureText: true,
                       validator: (value) {
-                        if (value != passwordController.text) {
-                          return 'Passwords do not match';
+                        if (value == null || value.isEmpty || value.length < 6) {
+                          return 'Password must be at least 6 characters.';
                         }
                         return null;
                       },
@@ -158,7 +172,7 @@ class SignUpPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: ElevatedButton(
-                      onPressed: () => signUserUp(context),
+                      onPressed: () => signUpUser(context),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.all(0),
                         shape: RoundedRectangleBorder(
@@ -177,7 +191,7 @@ class SignUpPage extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(15.0),
                           alignment: Alignment.center,
-                          constraints: BoxConstraints(minHeight: 70),
+                          constraints: BoxConstraints(minHeight: 50),
                           child: const Text(
                             'Sign Up',
                             style: TextStyle(
@@ -220,7 +234,7 @@ class SignUpPage extends StatelessWidget {
                       SquareTile(imagePath: 'lib/images/apple.png')
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -231,10 +245,13 @@ class SignUpPage extends StatelessWidget {
                       const SizedBox(width: 4),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginPage()),
+                          );
                         },
                         child: const Text(
-                          'Login now',
+                          'Sign in',
                           style: TextStyle(
                             color: Colors.blue,
                             fontWeight: FontWeight.bold,

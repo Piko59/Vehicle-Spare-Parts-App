@@ -3,8 +3,8 @@ import 'package:senior_design/pages/category_detail_page.dart';
 
 class MotorcycleCategoriesPage extends StatelessWidget {
   final List<String> motorcycleCategories = [
-    'Debriyaj', 'Egzoz', 'Elektrik', 'Fren', 'Grenaj', 'Havalandırma', 'Motor',
-    'Süspansiyon', 'Şanzıman', 'Yağlama', 'Yakıt Sistemi', 'Yönlendirme',
+    'Clutch', 'Exhaust', 'Electrical', 'Brake', 'Fairing', 'Ventilation', 'Engine',
+    'Suspension', 'Transmission', 'Lubrication', 'Fuel System', 'Steering',
   ];
 
   @override
@@ -17,7 +17,7 @@ class MotorcycleCategoriesPage extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Motorsiklet Kategorileri',
+          'Motorcycle Categories',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -37,7 +37,7 @@ class MotorcycleCategoriesPage extends StatelessWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CategoryDetailPage(category: 'Motorsiklet', partCategory: motorcycleCategories[index]),
+              builder: (context) => CategoryDetailPage(category: 'Motorcycle', partCategory: motorcycleCategories[index]),
             ),
           ),
         ),

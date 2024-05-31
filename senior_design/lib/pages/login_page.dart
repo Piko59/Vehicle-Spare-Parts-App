@@ -107,7 +107,7 @@ class LoginPage extends StatelessWidget {
                       autofocus: false,
                       controller: passwordController,
                       decoration: InputDecoration(
-                        hintText: 'Password',
+                        labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock, color: Colors.black),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.clear),

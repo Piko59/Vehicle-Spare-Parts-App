@@ -15,7 +15,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _selectedIndex = 4;
   String? profileImage;
   String displayName = 'Anonymous User';
   File? _imageFile;

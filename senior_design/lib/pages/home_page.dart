@@ -4,9 +4,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:senior_design/pages/car_categories_page.dart';
 import 'package:senior_design/pages/motorcycle_categories_page.dart';
 import 'package:senior_design/pages/bicycle_categories_page.dart';
-import 'add_part_page.dart';
-import 'profile_page.dart';
-import 'conversations_page.dart';
 import 'fullscreen_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,7 +13,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-  int _selectedIndex = 0;
   String? _userName;
 
   List<String> businessCategories = [
@@ -92,28 +88,6 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
-  }
-
-  void _onItemTapped(int index) {
-    if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AddPartPage()),
-      );
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => ConversationsPage()),
-      );
-    } else if (index == 4) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => ProfilePage()),
-      );
-    }
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   void _navigateToFullScreenMap(BuildContext context) {
