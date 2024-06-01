@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'comments_page.dart'; // Import the CommentsPage here
 
 class BusinessDetailsPage extends StatefulWidget {
   final String businessUid;
@@ -23,144 +22,163 @@ class BusinessDetailsPage extends StatefulWidget {
 }
 
 class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
-  double _rating = 0.0;
-  String _comment = '';
+  double _averageRating = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAverageRating();
+  }
+
+  void _fetchAverageRating() async {
+    final databaseReference = FirebaseDatabase.instance.reference();
+    DatabaseEvent event = await databaseReference
+        .child('users')
+        .child(widget.businessUid)
+        .child('receivedRatingsAndComments')
+        .once();
+
+    if (event.snapshot.value != null) {
+      Map<dynamic, dynamic> values = event.snapshot.value as Map<dynamic, dynamic>;
+      double totalRatings = 0.0;
+      int ratingsCount = 0;
+
+      values.forEach((key, value) {
+        if (value['rating'] != null) {
+          totalRatings += (value['rating'] as num).toDouble();
+          ratingsCount++;
+        }
+      });
+
+      if (ratingsCount > 0) {
+        setState(() {
+          _averageRating = totalRatings / ratingsCount;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Business Details'),
+        title: Text('Business Details',
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Color(0xFFCCCCFF),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            widget.businessImageUrl != null &&
-                    widget.businessImageUrl!.isNotEmpty
-                ? Image.network(
-                    widget.businessImageUrl!,
-                    width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  )
-                : Container(
-                    width: double.infinity,
-                    height: 200,
-                    color: Colors.grey,
-                    child: Icon(Icons.business, size: 100),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFCCCCFF), Colors.white],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: widget.businessImageUrl != null && widget.businessImageUrl!.isNotEmpty
+                        ? Image.network(
+                            widget.businessImageUrl!,
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: double.infinity,
+                            height: 200,
+                            color: Colors.grey,
+                            child: Icon(Icons.business, size: 100),
+                          ),
                   ),
-            SizedBox(height: 16),
-            Text(
-              widget.businessName,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              widget.businessCategory,
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Phone: ${widget.businessPhoneNumber}',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.blue,
-              ),
-            ),
-            SizedBox(height: 16),
-            RatingBar.builder(
-              initialRating: _rating,
-              minRating: 0,
-              direction: Axis.horizontal,
-              allowHalfRating: true,
-              itemCount: 5,
-              itemSize: 40,
-              itemBuilder: (context, _) => Icon(
-                Icons.star,
-                color: Colors.amber,
-              ),
-              onRatingUpdate: (rating) {
-                setState(() {
-                  _rating = rating;
-                });
-              },
-            ),
-            SizedBox(height: 16),
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  _comment = value;
-                });
-              },
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Enter your comment...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-
-                DatabaseReference reference =
-                    FirebaseDatabase.instance.reference();
-
-                // Veri eklenirken ayrım yapılması için yeni bir anahtar oluşturulur
-                String newKey = reference
-                        .child('users')
-                        .child(userId)
-                        .child('givenRatingsAndComments')
-                        .push()
-                        .key ??
-                    '';
-
-                // Rating ve yorumlar kullanıcının kendi veri yapısına eklenir
-                reference
-                    .child('users')
-                    .child(userId)
-                    .child('givenRatingsAndComments')
-                    .child(newKey)
-                    .set({
-                  'businessUid': widget.businessUid,
-                  'rating': _rating,
-                  'comment': _comment,
-                }).then((_) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Rating and comment added successfully!'),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.star, color: Colors.amber),
+                          SizedBox(width: 4),
+                          Text(
+                            _averageRating.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                }).catchError((error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to add rating and comment: $error'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Text(
+                widget.businessName,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                widget.businessCategory,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Phone: ${widget.businessPhoneNumber}',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 16),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CommentsPage(businessUid: widget.businessUid),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    textStyle: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                });
-
-                // Rating ve yorumlar işletme sahibinin veri yapısına eklenir
-                reference
-                    .child('users')
-                    .child(widget.businessUid)
-                    .child('receivedRatingsAndComments')
-                    .child(userId)
-                    .set({
-                  'rating': _rating,
-                  'comment': _comment,
-                });
-              },
-              child: Text('Send'),
-            ),
-          ],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: Text('View and Add Comments'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

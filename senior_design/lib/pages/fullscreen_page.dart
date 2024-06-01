@@ -125,7 +125,8 @@ class _FullscreenPageState extends State<FullscreenPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Google Maps'),
+        title: Text('Google Map'),
+        backgroundColor: Color(0xFFCCCCFF),
       ),
       body: _currentPosition == null
           ? Center(child: CircularProgressIndicator())

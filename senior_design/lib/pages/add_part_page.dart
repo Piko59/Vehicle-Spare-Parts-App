@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart'; // Realtime Database kütüphanesi
 import 'dart:io';
-import 'home_page.dart';
 import '../utils/user_manager.dart'; // UserManager sınıfını buraya dahil ediyoruz
 
 class AddPartPage extends StatefulWidget {
