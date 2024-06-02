@@ -160,22 +160,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    _buildStatCard('Total order', '243'),
-                    _buildStatCard('Comments', '89'),
-                  ],
-                ),
               ],
             ),
           ),
           Expanded(
             child: ListView(
               children: <Widget>[
-                _buildMenuButton(context, 'My Orders', HomePage()),
-                _buildMenuButton(context, 'Settings', HomePage()),
                 _buildMenuButton(context, 'Log Out', null, _signOut),
               ],
             ),

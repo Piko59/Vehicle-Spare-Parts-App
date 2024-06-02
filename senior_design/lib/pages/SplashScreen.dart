@@ -43,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Lottie.asset(
-                'lib/animations/splash_animation.json',
+                'assets/splash_animation.json',
                 fit: BoxFit.cover,
                 width: 400,
                 height: 400,

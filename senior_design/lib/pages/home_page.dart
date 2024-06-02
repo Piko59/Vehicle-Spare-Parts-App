@@ -15,19 +15,19 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   final TextEditingController _searchController = TextEditingController();
   String? _userName;
   LocationData? _currentLocation;
   late GoogleMapController mapController;
 
   List<String> businessCategories = [
-    'Lastikçi',
-    'Göçükçü',
-    'Karbüratörcü',
-    'Modifiyeci',
-    'Motor Arıza',
-    'Kaportacı'
+    'Tire Shop',
+    'Dent Repair',
+    'Carburetor Repair',
+    'Modification Shop',
+    'Engine Repair',
+    'Body Shop'
   ];
 
   @override
@@ -57,14 +57,38 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _getCurrentLocation() async {
+Future<void> _getCurrentLocation() async {
+  try {
     Location location = new Location();
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
     LocationData _locationData;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
     _locationData = await location.getLocation();
     setState(() {
       _currentLocation = _locationData;
     });
+  } catch (e) {
+    print('Error getting location: $e');
   }
+}
+
 
   void _showEmergencyDialog(BuildContext context) {
     showDialog(
@@ -115,6 +139,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Add this line
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -151,6 +176,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  @override
+  bool get wantKeepAlive => true; // Add this line
+
   Widget _buildNearbyBusinessesMap() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -177,7 +205,7 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(16),
               child: _currentLocation == null
                   ? Center(child: CircularProgressIndicator())
-                  : GoogleMap(        
+                  : GoogleMap(
                       myLocationEnabled: true,
                       myLocationButtonEnabled: true,
                       initialCameraPosition: CameraPosition(
@@ -265,55 +293,60 @@ class _PopularStoresState extends State<PopularStores> {
   }
 
   Future<void> _fetchStores() async {
-    DatabaseReference ref = FirebaseDatabase.instance.reference().child('businesses');
-    DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
-    print('Fetched businesses snapshot: ${snapshot.value}');
+    try {
+      DatabaseReference ref = FirebaseDatabase.instance.reference().child('businesses');
+      DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
+      print('Fetched businesses snapshot: ${snapshot.value}');
 
-    if (snapshot.exists) {
-      List<Map<String, dynamic>> stores = [];
-      Map<dynamic, dynamic> businesses = snapshot.value as Map<dynamic, dynamic>;
-      print('Businesses data: $businesses');
+      if (snapshot.exists) {
+        List<Map<String, dynamic>> stores = [];
+        Map<dynamic, dynamic> businesses = snapshot.value as Map<dynamic, dynamic>;
+        print('Businesses data: $businesses');
 
-      for (var businessUid in businesses.keys) {
-        DatabaseReference userRef = FirebaseDatabase.instance
-            .reference()
-            .child('users')
-            .child(businessUid);
-        DataSnapshot userSnapshot = await userRef.once().then((event) => event.snapshot);
-        print('Fetched user snapshot for $businessUid: ${userSnapshot.value}');
+        for (var businessUid in businesses.keys) {
+          DatabaseReference userRef = FirebaseDatabase.instance
+              .reference()
+              .child('users')
+              .child(businessUid);
+          DataSnapshot userSnapshot = await userRef.once().then((event) => event.snapshot);
+          print('Fetched user snapshot for $businessUid: ${userSnapshot.value}');
 
-        if (userSnapshot.exists) {
-          print('User snapshot exists for $businessUid');
-          Map<dynamic, dynamic> userData = userSnapshot.value as Map<dynamic, dynamic>;
+          if (userSnapshot.exists) {
+            print('User snapshot exists for $businessUid');
+            Map<dynamic, dynamic> userData = userSnapshot.value as Map<dynamic, dynamic>;
 
-          String name = userData['name'] ?? 'Unknown';
-          String imageUrl = userData['imageUrl'] ?? 'https://via.placeholder.com/150';
-          double rating = userData['averageRating'] != null ? double.parse(userData['averageRating'].toString()) : 0.0;
-          String category = userData['category'] ?? 'Unknown';
-          String phoneNumber = userData['phoneNumber'] ?? 'Unknown';
+            String name = userData['name'] ?? 'Unknown';
+            String imageUrl = userData['imageUrl'] ?? 'https://via.placeholder.com/150';
+            double rating = userData['averageRating'] != null ? double.parse(userData['averageRating'].toString()) : 0.0;
+            String category = userData['category'] ?? 'Unknown';
+            String phoneNumber = userData['phoneNumber'] ?? 'Unknown';
 
-          stores.add({
-            'name': name,
-            'imageUrl': imageUrl,
-            'rating': rating,
-            'businessUid': businessUid,
-            'category': category,
-            'phoneNumber': phoneNumber,
-          });
-          print('Added store: $name');
-        } else {
-          print('User snapshot for $businessUid does not exist');
+            stores.add({
+              'name': name,
+              'imageUrl': imageUrl,
+              'rating': rating,
+              'businessUid': businessUid,
+              'category': category,
+              'phoneNumber': phoneNumber,
+            });
+            print('Added store: $name');
+          } else {
+            print('User snapshot for $businessUid does not exist');
+          }
         }
-      }
 
-      setState(() {
-        _stores = stores;
-        print('Stores list updated: $_stores');
-      });
-    } else {
-      print('Businesses snapshot does not exist');
+        setState(() {
+          _stores = stores;
+          print('Stores list updated: $_stores');
+        });
+      } else {
+        print('Businesses snapshot does not exist');
+      }
+    } catch (e) {
+      print('Error fetching stores: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

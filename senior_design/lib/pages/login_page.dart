@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'sign_up_page.dart';
 import 'main_page.dart';
 import 'forget_password_page.dart';
+import 'package:lottie/lottie.dart';
 import 'package:senior_design/components/square_tile.dart';
 
 class LoginPage extends StatelessWidget {
@@ -18,18 +19,43 @@ class LoginPage extends StatelessWidget {
       String email = emailController.text.trim();
       String password = passwordController.text.trim();
 
+      // Loading dialog göster
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Lottie.asset('assets/splash_animation.json'),
+                  SizedBox(height: 20),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
       try {
         UserCredential userCredential = await _auth.signInWithEmailAndPassword(
             email: email, password: password);
 
         if (userCredential.user != null) {
+          await Future.delayed(Duration(seconds: 2));
+
+          Navigator.of(context).pop();
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (_) => MainPage()));
         } else {
+          Navigator.of(context).pop();
           ScaffoldMessenger.of(context)
               .showSnackBar(const SnackBar(content: Text('No user found.')));
         }
       } catch (e) {
+        Navigator.of(context).pop(); // Loading dialog'u kapat
         String errorMessage = 'An error occurred. Please try again.';
         if (e is FirebaseAuthException) {
           errorMessage = e.message ?? errorMessage;

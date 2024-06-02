@@ -9,7 +9,7 @@ class ConversationsPage extends StatefulWidget {
   _ConversationsPageState createState() => _ConversationsPageState();
 }
 
-class _ConversationsPageState extends State<ConversationsPage> {
+class _ConversationsPageState extends State<ConversationsPage> with AutomaticKeepAliveClientMixin {
   late Query _conversationsRef;
   String? _userId;
 
@@ -70,6 +70,7 @@ class _ConversationsPageState extends State<ConversationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Conversations',
@@ -184,4 +185,7 @@ class _ConversationsPageState extends State<ConversationsPage> {
             ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
