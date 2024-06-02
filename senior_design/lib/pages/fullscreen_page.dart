@@ -67,20 +67,7 @@ class _FullscreenPageState extends State<FullscreenPage> {
               snippet: value['businessCategory'] ?? 'No Category',
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BusinessDetailsPage(
-                    businessUid: key,
-                    businessName: value['name'] ?? 'No Name',
-                    businessImageUrl: value['imageUrl'] ?? '',
-                    businessCategory:
-                        value['businessCategory'] ?? 'No Category',
-                    businessPhoneNumber:
-                        value['phoneNumber'] ?? 'No Phone Number',
-                  ),
-                ),
-              );
+              _navigateToBusinessDetail(key, value);
             },
           );
           setState(() {
@@ -96,6 +83,21 @@ class _FullscreenPageState extends State<FullscreenPage> {
         }
       });
     }
+  }
+
+  void _navigateToBusinessDetail(String key, Map<String, dynamic> value) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BusinessDetailsPage(
+          businessUid: key,
+          businessName: value['name'] ?? 'No Name',
+          businessImageUrl: value['imageUrl'] ?? '',
+          businessCategory: value['businessCategory'] ?? 'No Category',
+          businessPhoneNumber: value['phoneNumber'] ?? 'No Phone Number',
+        ),
+      ),
+    );
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -156,9 +158,7 @@ class _FullscreenPageState extends State<FullscreenPage> {
                       children: _visibleBusinesses.values.map((business) {
                         return GestureDetector(
                           onTap: () {
-                            _controller?.animateCamera(
-                              CameraUpdate.newLatLng(business['position']),
-                            );
+                            _navigateToBusinessDetail(business['key'], business);
                           },
                           child: Card(
                             margin: EdgeInsets.all(10.0),

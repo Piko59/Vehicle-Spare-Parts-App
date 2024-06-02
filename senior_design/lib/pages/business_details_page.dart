@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'comments_page.dart'; // Import the CommentsPage here
+import 'comments_page.dart';
 
 class BusinessDetailsPage extends StatefulWidget {
   final String businessUid;
@@ -35,26 +35,13 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
     DatabaseEvent event = await databaseReference
         .child('users')
         .child(widget.businessUid)
-        .child('receivedRatingsAndComments')
+        .child('averageRating')
         .once();
 
     if (event.snapshot.value != null) {
-      Map<dynamic, dynamic> values = event.snapshot.value as Map<dynamic, dynamic>;
-      double totalRatings = 0.0;
-      int ratingsCount = 0;
-
-      values.forEach((key, value) {
-        if (value['rating'] != null) {
-          totalRatings += (value['rating'] as num).toDouble();
-          ratingsCount++;
-        }
+      setState(() {
+        _averageRating = (event.snapshot.value as num).toDouble();
       });
-
-      if (ratingsCount > 0) {
-        setState(() {
-          _averageRating = totalRatings / ratingsCount;
-        });
-      }
     }
   }
 
@@ -154,13 +141,16 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
               SizedBox(height: 16),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => CommentsPage(businessUid: widget.businessUid),
                       ),
                     );
+                    if (result == true) {
+                      _fetchAverageRating(); // Update average rating after returning from comments page
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),

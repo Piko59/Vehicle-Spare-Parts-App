@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../utils/user_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'select_location_page.dart'; // Harita sayfası için import
+import 'select_location_page.dart';
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -15,14 +15,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   bool _isBusiness = false;
 
-  // Common fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
 
-  // Business specific fields
-  String _businessCategory = 'Tire Shop'; // Default category set
-  LatLng? _businessLocation; // To store the selected location
+  String _businessCategory = 'Tire Shop';
+  LatLng? _businessLocation;
 
   List<String> businessCategories = [
     'Tire Shop',
@@ -50,7 +48,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _isBusiness = userData['profileType'] == 'business';
           _nameController.text = userData['name'];
           _usernameController.text =
-              userData['username']; // Veritabanından username'i al
+              userData['username'];
           _phoneNumberController.text = userData['phoneNumber'];
           if (_isBusiness) {
             _businessCategory = userData['businessCategory'] ?? 'Tire Shop';
@@ -237,36 +235,45 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      String? userId = UserManager.currentUserId;
-      if (userId != null) {
-        Map<String, dynamic> profileData = {
-          'name': _nameController.text,
-          'username': _usernameController.text,
-          'phoneNumber': _phoneNumberController.text,
-          'profileType': _isBusiness ? 'business' : 'personal',
-        };
+void _saveProfile() {
+  if (_formKey.currentState!.validate()) {
+    String? userId = UserManager.currentUserId;
+    if (userId != null) {
+      Map<String, dynamic> profileData = {
+        'name': _nameController.text,
+        'username': _usernameController.text,
+        'phoneNumber': _phoneNumberController.text,
+        'profileType': _isBusiness ? 'business' : 'personal',
+      };
 
+      if (_isBusiness) {
+        profileData['businessCategory'] = _businessCategory;
+        if (_businessLocation != null) {
+          profileData['location'] = {
+            'latitude': _businessLocation!.latitude,
+            'longitude': _businessLocation!.longitude,
+          };
+        }
+      }
+
+      _databaseReference.child(userId).update(profileData).then((_) {
         if (_isBusiness) {
-          profileData['businessCategory'] = _businessCategory;
-          if (_businessLocation != null) {
-            profileData['location'] = {
-              'latitude': _businessLocation!.latitude,
-              'longitude': _businessLocation!.longitude,
-            };
-          }
+          // Eğer kullanıcı iş sahibi ise, businesses node'una UID'yi ekleyin
+          FirebaseDatabase.instance.reference().child('businesses').child(userId).set(true);
+        } else {
+          // Eğer kullanıcı kişisel profildeyse, businesses node'undan UID'yi silin
+          FirebaseDatabase.instance.reference().child('businesses').child(userId).remove();
         }
 
-        _databaseReference.child(userId).update(profileData).then((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Profile updated successfully')));
-          Navigator.pop(context);
-        }).catchError((error) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Error: $error')));
-        });
-      }
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Profile updated successfully')));
+        Navigator.pop(context);
+      }).catchError((error) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $error')));
+      });
     }
   }
+}
+
 }

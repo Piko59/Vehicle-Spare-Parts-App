@@ -89,35 +89,7 @@ class _CommentsPageState extends State<CommentsPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-                    int timestamp = DateTime.now().millisecondsSinceEpoch;
-                    String commentId = '$timestamp';
-
-                    DatabaseReference reference =
-                        FirebaseDatabase.instance.reference();
-
-                    reference
-                        .child('users')
-                        .child(widget.businessUid)
-                        .child('receivedRatingsAndComments')
-                        .child(commentId)
-                        .set({
-                      'rating': _rating,
-                      'comment': _comment,
-                      'userId': userId,
-                    }).then((_) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Rating and comment added successfully!'),
-                        ),
-                      );
-                    }).catchError((error) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to add rating and comment: $error'),
-                        ),
-                      );
-                    });
+                    _addRatingAndComment();
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -265,5 +237,66 @@ class _CommentsPageState extends State<CommentsPage> {
         ),
       ),
     );
+  }
+
+  void _addRatingAndComment() {
+    String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
+    String commentId = '$timestamp';
+
+    DatabaseReference reference =
+        FirebaseDatabase.instance.reference();
+
+    reference
+        .child('users')
+        .child(widget.businessUid)
+        .child('receivedRatingsAndComments')
+        .child(commentId)
+        .set({
+      'rating': _rating,
+      'comment': _comment,
+      'userId': userId,
+    }).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Rating and comment added successfully!'),
+        ),
+      );
+      _updateAverageRating();
+      Navigator.pop(context, true); // Return to BusinessDetailsPage and update rating
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add rating and comment: $error'),
+        ),
+      );
+    });
+  }
+
+  void _updateAverageRating() async {
+    DatabaseReference reference = FirebaseDatabase.instance.reference();
+    DatabaseEvent event = await reference
+        .child('users')
+        .child(widget.businessUid)
+        .child('receivedRatingsAndComments')
+        .once();
+
+    if (event.snapshot.value != null) {
+      Map<dynamic, dynamic> values = event.snapshot.value as Map<dynamic, dynamic>;
+      double totalRatings = 0.0;
+      int ratingsCount = 0;
+
+      values.forEach((key, value) {
+        if (value['rating'] != null) {
+          totalRatings += (value['rating'] as num).toDouble();
+          ratingsCount++;
+        }
+      });
+
+      if (ratingsCount > 0) {
+        double averageRating = totalRatings / ratingsCount;
+        await reference.child('users').child(widget.businessUid).child('averageRating').set(averageRating);
+      }
+    }
   }
 }

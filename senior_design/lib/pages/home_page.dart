@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:senior_design/pages/car_categories_page.dart';
 import 'package:senior_design/pages/motorcycle_categories_page.dart';
 import 'package:senior_design/pages/bicycle_categories_page.dart';
+import 'business_list_page.dart';
 import 'fullscreen_page.dart';
+import 'business_details_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -14,6 +18,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   String? _userName;
+  LocationData? _currentLocation;
+  late GoogleMapController mapController;
 
   List<String> businessCategories = [
     'Lastikçi',
@@ -27,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _getCurrentLocation();
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
         setState(() {
@@ -48,6 +55,15 @@ class _HomePageState extends State<HomePage> {
         _userName = snapshot.value as String?;
       });
     }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    Location location = new Location();
+    LocationData _locationData;
+    _locationData = await location.getLocation();
+    setState(() {
+      _currentLocation = _locationData;
+    });
   }
 
   void _showEmergencyDialog(BuildContext context) {
@@ -112,6 +128,7 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildNearbyBusinessesMap(),
               VehiclePartIcons(),
               PopularStores(),
             ],
@@ -128,152 +145,62 @@ class _HomePageState extends State<HomePage> {
               child: Icon(Icons.warning),
               heroTag: 'emergency',
             ),
-            SizedBox(height: 10),
-            FloatingActionButton(
-              onPressed: () {
-                _navigateToFullScreenMap(context);
-              },
-              backgroundColor: Colors.green,
-              child: Icon(Icons.map),
-              heroTag: 'map',
-            ),
           ],
         ),
       ),
     );
   }
-}
 
-class BusinessListPage extends StatelessWidget {
-  final String category;
-
-  BusinessListPage({required this.category});
-
-  Future<List<Map<String, dynamic>>> _getBusinessesByCategory(
-      String category) async {
-    List<Map<String, dynamic>> businesses = [];
-    try {
-      DatabaseReference ref =
-          FirebaseDatabase.instance.reference().child('users');
-      DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
-      Map<dynamic, dynamic>? users = snapshot.value as Map<dynamic, dynamic>?;
-
-      if (users != null) {
-        users.forEach((key, value) {
-          var profile = value['profile'];
-          if (profile != null && profile['businessCategory'] == category) {
-            Map<String, dynamic> businessInfo = {
-              'name': profile['businessName'] ?? '',
-              'image': profile['businessImage'] ?? '',
-              'address': profile['address'] ?? '',
-              'rating': profile['rating'] ?? 0,
-            };
-            businesses.add(businessInfo);
-          }
-        });
-      }
-    } catch (e) {
-      print("Error: $e");
-    }
-    return businesses;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('$category Businesses'),
-      ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _getBusinessesByCategory(category),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-                child: Text('No businesses found for this category.'));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                var business = snapshot.data![index];
-                return Card(
-                  margin: EdgeInsets.all(10.0),
-                  child: ListTile(
-                    leading: business['image'] != ''
-                        ? Image.network(business['image'],
-                            width: 60, height: 60, fit: BoxFit.cover)
-                        : Icon(Icons.business, size: 60),
-                    title: Text(
-                      business['name'],
-                      style: TextStyle(fontWeight: FontWeight.bold),
+  Widget _buildNearbyBusinessesMap() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Nearby Businesses',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          SizedBox(height: 8),
+          Container(
+            height: 200,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 5,
+                  blurRadius: 7,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: _currentLocation == null
+                  ? Center(child: CircularProgressIndicator())
+                  : GoogleMap(        
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: true,
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(_currentLocation!.latitude!,
+                            _currentLocation!.longitude!),
+                        zoom: 14.0,
+                      ),
+                      onMapCreated: (GoogleMapController controller) {
+                        mapController = controller;
+                      },
+                      onTap: (LatLng position) {
+                        _navigateToFullScreenMap(context);
+                      },
                     ),
-                    subtitle: Text(business['address']),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.star, color: Colors.yellow),
-                        Text(business['rating'].toString()),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          }
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class PopularStores extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Popular Stores',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              TextButton(
-                onPressed: () {},
-                child: Text('See All', style: TextStyle(color: Colors.blue)),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          height: 200,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              StoreTile(
-                  name: 'Kaportacı Emre Usta',
-                  distance: '1.7 km',
-                  imageUrl: 'assets/kaportaci1.jpg',
-                  rating: 4.5,
-                  reviews: 744),
-              StoreTile(
-                  name: 'Semizler Kardeş Servis',
-                  distance: '1.9 km',
-                  imageUrl: 'assets/kaportaci2.jpg',
-                  rating: 4.5,
-                  reviews: 744),
-              // Daha fazla StoreTile widget'ı eklenebilir
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
+
 
 class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController searchController;
@@ -320,56 +247,207 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize =>
-      Size.fromHeight(160.0); // Adjust the preferred size accordingly
+  Size get preferredSize => Size.fromHeight(120.0);
+}
+
+class PopularStores extends StatefulWidget {
+  @override
+  _PopularStoresState createState() => _PopularStoresState();
+}
+
+class _PopularStoresState extends State<PopularStores> {
+  List<Map<String, dynamic>> _stores = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStores();
+  }
+
+  Future<void> _fetchStores() async {
+    DatabaseReference ref = FirebaseDatabase.instance.reference().child('businesses');
+    DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
+    print('Fetched businesses snapshot: ${snapshot.value}'); // Log snapshot value
+
+    if (snapshot.exists) {
+      List<Map<String, dynamic>> stores = [];
+      Map<dynamic, dynamic> businesses = snapshot.value as Map<dynamic, dynamic>;
+      print('Businesses data: $businesses'); // Log businesses data
+
+      for (var businessUid in businesses.keys) {
+        DatabaseReference userRef = FirebaseDatabase.instance
+            .reference()
+            .child('users')
+            .child(businessUid);
+        DataSnapshot userSnapshot = await userRef.once().then((event) => event.snapshot);
+        print('Fetched user snapshot for $businessUid: ${userSnapshot.value}'); // Log user snapshot value
+
+        if (userSnapshot.exists) {
+          print('User snapshot exists for $businessUid'); // Log if user snapshot exists
+          Map<dynamic, dynamic> userData = userSnapshot.value as Map<dynamic, dynamic>;
+
+          String name = userData['name'] ?? 'Unknown';
+          String imageUrl = userData['imageUrl'] ?? 'https://via.placeholder.com/150';
+          double rating = userData['averageRating'] != null ? double.parse(userData['averageRating'].toString()) : 0.0;
+          String category = userData['category'] ?? 'Unknown';
+          String phoneNumber = userData['phoneNumber'] ?? 'Unknown';
+
+          stores.add({
+            'name': name,
+            'imageUrl': imageUrl,
+            'rating': rating,
+            'businessUid': businessUid,
+            'category': category,
+            'phoneNumber': phoneNumber,
+          });
+          print('Added store: $name'); // Log added store
+        } else {
+          print('User snapshot for $businessUid does not exist'); // Log if user snapshot does not exist
+        }
+      }
+
+      setState(() {
+        _stores = stores;
+        print('Stores list updated: $_stores'); // Log final stores list after setState
+      });
+    } else {
+      print('Businesses snapshot does not exist'); // Log if businesses snapshot does not exist
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Popular Stores',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              TextButton(
+                onPressed: () {},
+                child: Text('See All', style: TextStyle(color: Colors.blue)),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          height: 200,
+          child: _stores.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _stores.length,
+                  itemBuilder: (context, index) {
+                    return StoreTile(
+                      name: _stores[index]['name'],
+                      imageUrl: _stores[index]['imageUrl'],
+                      rating: _stores[index]['rating'],
+                      businessUid: _stores[index]['businessUid'],
+                      businessCategory: _stores[index]['category'],
+                      businessPhoneNumber: _stores[index]['phoneNumber'],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
 }
 
 class StoreTile extends StatelessWidget {
   final String name;
-  final String distance;
   final String imageUrl;
   final double rating;
-  final int reviews;
+  final String businessUid;
+  final String businessCategory;
+  final String businessPhoneNumber;
 
-  const StoreTile(
-      {Key? key,
-      required this.name,
-      required this.distance,
-      required this.imageUrl,
-      required this.rating,
-      required this.reviews})
-      : super(key: key);
+  const StoreTile({
+    Key? key,
+    required this.name,
+    required this.imageUrl,
+    required this.rating,
+    required this.businessUid,
+    required this.businessCategory,
+    required this.businessPhoneNumber,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      margin: EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Image.asset(imageUrl, fit: BoxFit.cover),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BusinessDetailsPage(
+              businessUid: businessUid,
+              businessName: name,
+              businessImageUrl: imageUrl,
+              businessCategory: businessCategory,
+              businessPhoneNumber: businessPhoneNumber,
             ),
           ),
-          SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.star, color: Colors.blue, size: 20),
-              SizedBox(width: 4),
-              Text('$rating($reviews)', style: TextStyle(color: Colors.black)),
-            ],
-          ),
-          SizedBox(height: 4),
-          Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-          Text(distance),
-        ],
+        );
+      },
+      child: Container(
+        width: 180,
+        margin: EdgeInsets.all(8),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Image.network(imageUrl, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 20),
+                    SizedBox(width: 4),
+                    Text(
+                      rating.toStringAsFixed(1),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 8,
+              left: 8,
+              child: Text(
+                name,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  backgroundColor: Colors.black54,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+
+
 
 class VehiclePartIcons extends StatelessWidget {
   @override
@@ -387,34 +465,52 @@ class VehiclePartIcons extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            IconButton(
-              icon: Icon(Icons.directions_car, size: 50),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => CarCategoriesPage()));
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0XFFEDEDED),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Image.asset('assets/car.png', width: 70, height: 70),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CarCategoriesPage()));
+                },
+              ),
             ),
             SizedBox(width: 20),
-            IconButton(
-              icon: Icon(Icons.directions_bike, size: 50),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => BicycleCategoriesPage()));
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0XFFEDEDED),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Image.asset('assets/motorcycle.png', width: 70, height: 70),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => MotorcycleCategoriesPage()));
+                },
+              ),
             ),
             SizedBox(width: 20),
-            IconButton(
-              icon: Icon(Icons.motorcycle, size: 50),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => MotorcycleCategoriesPage()));
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0XFFEDEDED),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Image.asset('assets/bicycle.png', width: 70, height: 70),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => BicycleCategoriesPage()));
+                },
+              ),
             ),
           ],
         ),
