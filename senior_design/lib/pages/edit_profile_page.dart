@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import '../utils/user_manager.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'select_location_page.dart';
 
@@ -38,8 +38,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _loadUserProfile() async {
-    String? userId = UserManager.currentUserId;
-    if (userId != null) {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String userId = user.uid;
       DataSnapshot snapshot = await _databaseReference.child(userId).get();
       if (snapshot.exists) {
         Map<String, dynamic> userData =
@@ -126,7 +127,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 _buildBusinessCategoryDropdown(),
                 _buildTextInput(
                     'Business Phone Number', _phoneNumberController),
-                _buildLocationSelector(), // Yeni konum seçici düğmesini ekledik
+                _buildLocationSelector(),
               ],
               SizedBox(height: 20),
               ElevatedButton(
@@ -235,45 +236,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-void _saveProfile() {
-  if (_formKey.currentState!.validate()) {
-    String? userId = UserManager.currentUserId;
-    if (userId != null) {
-      Map<String, dynamic> profileData = {
-        'name': _nameController.text,
-        'username': _usernameController.text,
-        'phoneNumber': _phoneNumberController.text,
-        'profileType': _isBusiness ? 'business' : 'personal',
-      };
+  void _saveProfile() {
+    if (_formKey.currentState!.validate()) {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        String userId = user.uid;
+        Map<String, dynamic> profileData = {
+          'name': _nameController.text,
+          'username': _usernameController.text,
+          'phoneNumber': _phoneNumberController.text,
+          'profileType': _isBusiness ? 'business' : 'personal',
+        };
 
-      if (_isBusiness) {
-        profileData['businessCategory'] = _businessCategory;
-        if (_businessLocation != null) {
-          profileData['location'] = {
-            'latitude': _businessLocation!.latitude,
-            'longitude': _businessLocation!.longitude,
-          };
-        }
-      }
-
-      _databaseReference.child(userId).update(profileData).then((_) {
         if (_isBusiness) {
-          // Eğer kullanıcı iş sahibi ise, businesses node'una UID'yi ekleyin
-          FirebaseDatabase.instance.reference().child('businesses').child(userId).set(true);
-        } else {
-          // Eğer kullanıcı kişisel profildeyse, businesses node'undan UID'yi silin
-          FirebaseDatabase.instance.reference().child('businesses').child(userId).remove();
+          profileData['businessCategory'] = _businessCategory;
+          if (_businessLocation != null) {
+            profileData['location'] = {
+              'latitude': _businessLocation!.latitude,
+              'longitude': _businessLocation!.longitude,
+            };
+          }
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Profile updated successfully')));
-        Navigator.pop(context);
-      }).catchError((error) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $error')));
-      });
+        _databaseReference.child(userId).update(profileData).then((_) {
+          if (_isBusiness) {
+            FirebaseDatabase.instance.reference().child('businesses').child(userId).set(true);
+          } else {
+            FirebaseDatabase.instance.reference().child('businesses').child(userId).remove();
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Profile updated successfully')));
+          Navigator.pop(context);
+        }).catchError((error) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Error: $error')));
+        });
+      }
     }
   }
-}
-
 }

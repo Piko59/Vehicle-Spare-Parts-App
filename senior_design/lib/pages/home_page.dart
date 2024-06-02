@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
                 (index) => ListTile(
                   title: Text(businessCategories[index]),
                   onTap: () {
-                    Navigator.pop(context); // Close the dialog
+                    Navigator.pop(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -96,7 +96,7 @@ class _HomePageState extends State<HomePage> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
               },
               child: Text('Close'),
             ),
@@ -267,12 +267,12 @@ class _PopularStoresState extends State<PopularStores> {
   Future<void> _fetchStores() async {
     DatabaseReference ref = FirebaseDatabase.instance.reference().child('businesses');
     DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
-    print('Fetched businesses snapshot: ${snapshot.value}'); // Log snapshot value
+    print('Fetched businesses snapshot: ${snapshot.value}');
 
     if (snapshot.exists) {
       List<Map<String, dynamic>> stores = [];
       Map<dynamic, dynamic> businesses = snapshot.value as Map<dynamic, dynamic>;
-      print('Businesses data: $businesses'); // Log businesses data
+      print('Businesses data: $businesses');
 
       for (var businessUid in businesses.keys) {
         DatabaseReference userRef = FirebaseDatabase.instance
@@ -280,10 +280,10 @@ class _PopularStoresState extends State<PopularStores> {
             .child('users')
             .child(businessUid);
         DataSnapshot userSnapshot = await userRef.once().then((event) => event.snapshot);
-        print('Fetched user snapshot for $businessUid: ${userSnapshot.value}'); // Log user snapshot value
+        print('Fetched user snapshot for $businessUid: ${userSnapshot.value}');
 
         if (userSnapshot.exists) {
-          print('User snapshot exists for $businessUid'); // Log if user snapshot exists
+          print('User snapshot exists for $businessUid');
           Map<dynamic, dynamic> userData = userSnapshot.value as Map<dynamic, dynamic>;
 
           String name = userData['name'] ?? 'Unknown';
@@ -300,18 +300,18 @@ class _PopularStoresState extends State<PopularStores> {
             'category': category,
             'phoneNumber': phoneNumber,
           });
-          print('Added store: $name'); // Log added store
+          print('Added store: $name');
         } else {
-          print('User snapshot for $businessUid does not exist'); // Log if user snapshot does not exist
+          print('User snapshot for $businessUid does not exist');
         }
       }
 
       setState(() {
         _stores = stores;
-        print('Stores list updated: $_stores'); // Log final stores list after setState
+        print('Stores list updated: $_stores');
       });
     } else {
-      print('Businesses snapshot does not exist'); // Log if businesses snapshot does not exist
+      print('Businesses snapshot does not exist');
     }
   }
 

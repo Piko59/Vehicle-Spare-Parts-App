@@ -87,7 +87,6 @@ class _ConversationsPageState extends State<ConversationsPage> {
                   MaterialPageRoute(builder: (context) => NewConversationPage(userId: _userId!)),
                 );
               } else {
-                // Kullanıcı kimliği alınamadı hatası göster
                 print('User ID not found');
               }
             },

@@ -84,14 +84,14 @@ class _SelectLocationPageState extends State<SelectLocationPage> {
         children: [
           GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: LatLng(37.7749, -122.4194), // Default to San Francisco
+              target: LatLng(37.7749, -122.4194),
               zoom: 14.0,
             ),
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             onMapCreated: (GoogleMapController controller) {
               _mapController = controller;
-              _setInitialLocation(); // Set initial location when map is created
+              _setInitialLocation();
               _location.onLocationChanged
                   .listen((LocationData currentLocation) {
                 if (_selectedLocation == null) {

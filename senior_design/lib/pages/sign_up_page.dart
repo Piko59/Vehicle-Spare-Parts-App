@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_page.dart';
 import 'main_page.dart';
-import '../utils/user_manager.dart';
 import 'package:senior_design/components/square_tile.dart';
 
 class SignUpPage extends StatelessWidget {
@@ -32,8 +31,6 @@ class SignUpPage extends StatelessWidget {
             email: email, password: password);
 
         if (userCredential.user != null) {
-          String userId = userCredential.user!.uid;
-          UserManager.login(userId);
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (_) => MainPage()));
         } else {

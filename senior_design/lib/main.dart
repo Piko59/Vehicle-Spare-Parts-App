@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'pages/SplashScreen.dart';
-import 'utils/user_manager.dart';
+import 'pages/login_page.dart';
+import 'pages/main_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
@@ -12,14 +13,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  FirebaseAuth.instance.authStateChanges().listen((User? user) {
-    if (user != null) {
-      UserManager.login(user.uid);
-    } else {
-      UserManager.logout();
-    }
-  });
-
   runApp(const MyApp());
 }
 
@@ -28,9 +21,42 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      home: AuthStateHandler(),
     );
+  }
+}
+
+class AuthStateHandler extends StatefulWidget {
+  @override
+  _AuthStateHandlerState createState() => _AuthStateHandlerState();
+}
+
+class _AuthStateHandlerState extends State<AuthStateHandler> {
+  @override
+  void initState() {
+    super.initState();
+    // SplashScreen'i 3 saniye göster ve ardından oturum durumunu kontrol et
+    Future.delayed(Duration(seconds: 3), () {
+      FirebaseAuth.instance.authStateChanges().listen((User? user) {
+        if (user == null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MainPage()),
+          );
+        }
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SplashScreen();
   }
 }

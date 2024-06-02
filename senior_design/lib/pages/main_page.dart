@@ -29,7 +29,7 @@ class _MainPageState extends State<MainPage> {
 
     if (result == true) {
       setState(() {
-        _selectedIndex = 0; // Geri döndüğümüzde ana sayfaya yönlendiriyoruz
+        _selectedIndex = 0;
       });
     }
   }
@@ -39,7 +39,7 @@ class _MainPageState extends State<MainPage> {
     final List<Widget> _widgetOptions = <Widget>[
       HomePage(),
       ExplorePage(),
-      Container(), // Boş bir widget yerleştiriyoruz
+      Container(),
       ConversationsPage(),
       ProfilePage(),
     ];

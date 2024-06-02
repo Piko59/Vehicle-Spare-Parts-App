@@ -56,8 +56,8 @@ class CategoryDetailPage extends StatelessWidget {
                 title: Text(
                   part['title'],
                   style: TextStyle(
-                    fontSize: 18.0, // Increased font size
-                    fontWeight: FontWeight.bold, // Bold font
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 subtitle: Text('Price: \$${part['price']}'),

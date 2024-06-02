@@ -30,8 +30,8 @@ class CarCategoriesPage extends StatelessWidget {
           title: Text(
             carCategories[index],
             style: TextStyle(
-              fontSize: 18.0, // Increased font size
-              fontWeight: FontWeight.bold, // Bold font
+              fontSize: 18.0, 
+              fontWeight: FontWeight.bold,
             ),
           ),
           onTap: () => Navigator.push(

@@ -89,16 +89,15 @@ class PartDetailScreen extends StatelessWidget {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Message sending action
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF00A9B7), // Button color
+                backgroundColor: Color(0xFF00A9B7),
               ),
               child: Text(
                 'Send Message',
                 style: TextStyle(
-                  color: Colors.white, // Button text color
-                  fontWeight: FontWeight.bold, // Bold font
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),

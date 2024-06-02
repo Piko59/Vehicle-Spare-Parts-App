@@ -149,7 +149,7 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
                       ),
                     );
                     if (result == true) {
-                      _fetchAverageRating(); // Update average rating after returning from comments page
+                      _fetchAverageRating();
                     }
                   },
                   style: ElevatedButton.styleFrom(

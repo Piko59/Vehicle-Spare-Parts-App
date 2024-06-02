@@ -30,8 +30,8 @@ class BicycleCategoriesPage extends StatelessWidget {
           title: Text(
             bicycleCategories[index],
             style: TextStyle(
-              fontSize: 18.0, // Increased font size
-              fontWeight: FontWeight.bold, // Bold font
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
             ),
           ),
           onTap: () => Navigator.push(

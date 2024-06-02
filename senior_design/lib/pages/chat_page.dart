@@ -61,10 +61,8 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
 
-    // Other user's ID and username retrieval
     _getOtherUserDetails();
 
-    // Scroll to bottom on initial load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);

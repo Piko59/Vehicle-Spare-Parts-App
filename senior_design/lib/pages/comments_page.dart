@@ -121,7 +121,7 @@ class _CommentsPageState extends State<CommentsPage> {
                       if (dataSnapshot.value != null) {
                         Map<dynamic, dynamic> data = dataSnapshot.value as Map<dynamic, dynamic>;
                         List<dynamic> itemKeys = data.keys.toList()
-                          ..sort((a, b) => b.compareTo(a)); // Sort by commentId
+                          ..sort((a, b) => b.compareTo(a));
 
                         return ListView.builder(
                           itemCount: itemKeys.length,
@@ -130,17 +130,16 @@ class _CommentsPageState extends State<CommentsPage> {
                             double rating = (data[key]['rating'] as num).toDouble();
                             String comment = data[key]['comment'] as String? ?? '';
                             String userId = data[key]['userId'] as String? ?? '';
-                            int timestamp = int.parse(key); // Parse commentId as timestamp
+                            int timestamp = int.parse(key);
                             DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
                             String formattedDate = DateFormat('dd MMM yyyy HH:mm').format(date);
 
-                            // Fetch user details
                             return FutureBuilder<DataSnapshot>(
                               future: FirebaseDatabase.instance
                                   .reference()
                                   .child('users')
                                   .child(userId)
-                                  .get(), // Using get() instead of once()
+                                  .get(),
                               builder: (context, userSnapshot) {
                                 if (userSnapshot.hasData && userSnapshot.data != null) {
                                   Map<dynamic, dynamic> userData = userSnapshot.data!.value as Map<dynamic, dynamic>;
@@ -263,7 +262,7 @@ class _CommentsPageState extends State<CommentsPage> {
         ),
       );
       _updateAverageRating();
-      Navigator.pop(context, true); // Return to BusinessDetailsPage and update rating
+      Navigator.pop(context, true);
     }).catchError((error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

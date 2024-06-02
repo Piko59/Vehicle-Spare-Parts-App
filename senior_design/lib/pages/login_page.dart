@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'sign_up_page.dart';
 import 'main_page.dart';
 import 'forget_password_page.dart';
-import '../utils/user_manager.dart';
 import 'package:senior_design/components/square_tile.dart';
 
 class LoginPage extends StatelessWidget {
@@ -24,8 +23,6 @@ class LoginPage extends StatelessWidget {
             email: email, password: password);
 
         if (userCredential.user != null) {
-          String userId = userCredential.user!.uid;
-          UserManager.login(userId);
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (_) => MainPage()));
         } else {
@@ -64,7 +61,10 @@ class LoginPage extends StatelessWidget {
                   const SizedBox(height: 20),
                   const Text(
                     'Welcome,',
-                    style: TextStyle(color: Colors.black, fontSize: 32, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold),
                   ),
                   const Text(
                     'Glad to see you!',
@@ -88,12 +88,15 @@ class LoginPage extends StatelessWidget {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                          borderSide:
+                              BorderSide(color: Color(0xFFA3D8FF), width: 2),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
-                        if (value == null || value.isEmpty || !value.contains('@')) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            !value.contains('@')) {
                           return 'Please enter a valid email address.';
                         }
                         return null;
@@ -118,7 +121,8 @@ class LoginPage extends StatelessWidget {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                          borderSide:
+                              BorderSide(color: Color(0xFFA3D8FF), width: 2),
                         ),
                       ),
                       obscureText: true,
@@ -146,8 +150,7 @@ class LoginPage extends StatelessWidget {
                           },
                           child: Text(
                             'Forgot Password?',
-                            style: TextStyle(
-                                color: Colors.grey[600]),
+                            style: TextStyle(color: Colors.grey[600]),
                           ),
                         ),
                       ],

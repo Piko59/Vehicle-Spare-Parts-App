@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 import 'edit_profile_page.dart';
-import '../utils/user_manager.dart';
 import 'package:path/path.dart' as path;
 
 class ProfilePage extends StatefulWidget {
@@ -21,26 +21,24 @@ class _ProfilePageState extends State<ProfilePage> {
   final picker = ImagePicker();
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
-  final String userId =
-      UserManager.currentUserId ?? ''; // Kullanıcı ID'sini alıyoruz.
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late User _user;
 
   @override
   void initState() {
     super.initState();
+    _user = _auth.currentUser!;
     _loadUserProfile();
   }
 
   Future<void> _loadUserProfile() async {
     try {
-      final DatabaseEvent event =
-          await _databaseRef.child('users/$userId').once();
+      final DatabaseEvent event = await _databaseRef.child('users/${_user.uid}').once();
       final DataSnapshot snapshot = event.snapshot;
       if (snapshot.value != null) {
         setState(() {
-          profileImage = snapshot.child('imageUrl').value
-              as String?; // null by default
-          displayName =
-              snapshot.child('name').value as String? ?? 'Anonymous User';
+          profileImage = snapshot.child('imageUrl').value as String?;
+          displayName = snapshot.child('name').value as String? ?? 'Anonymous User';
         });
       }
     } catch (e) {
@@ -72,7 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         profileImage = downloadURL;
       });
-      _updateImageURL(downloadURL); // Profil resim URL'sini güncelle
+      _updateImageURL(downloadURL);
     } catch (e) {
       print('Error uploading image: $e');
     }
@@ -80,12 +78,23 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _updateImageURL(String downloadURL) async {
     try {
-      await _databaseRef
-          .child('users/$userId')
-          .update({'imageUrl': downloadURL});
+      await _databaseRef.child('users/${_user.uid}').update({'imageUrl': downloadURL});
       print('Profile image URL updated successfully.');
     } catch (e) {
       print('Error updating profile image URL: $e');
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await _auth.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      print('Error signing out: $e');
     }
   }
 
@@ -95,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
         CircleAvatar(
           backgroundImage: profileImage != null
               ? NetworkImage(profileImage!)
-              : AssetImage('assets/default_user_image.jpg'),
+              : AssetImage('assets/default_user_image.jpg') as ImageProvider,
           radius: 95,
         ),
         Positioned(
@@ -167,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
               children: <Widget>[
                 _buildMenuButton(context, 'My Orders', HomePage()),
                 _buildMenuButton(context, 'Settings', HomePage()),
-                _buildMenuButton(context, 'Log Out', LoginPage()),
+                _buildMenuButton(context, 'Log Out', null, _signOut),
               ],
             ),
           ),
@@ -213,17 +222,20 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuButton(BuildContext context, String title, Widget page) {
+  Widget _buildMenuButton(BuildContext context, String title, Widget? page, [VoidCallback? onTap]) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 72.0),
       child: ListTile(
         title: Text(title),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => page),
-          );
-        },
+        onTap: onTap ??
+            () {
+              if (page != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => page),
+                );
+              }
+            },
       ),
     );
   }

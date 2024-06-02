@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart'; // Realtime Database kütüphanesi
+import 'package:firebase_database/firebase_database.dart';
 import 'dart:io';
-import '../utils/user_manager.dart'; // UserManager sınıfını buraya dahil ediyoruz
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddPartPage extends StatefulWidget {
   @override
@@ -125,9 +125,9 @@ class _AddPartPageState extends State<AddPartPage> {
       firebase_storage.TaskSnapshot taskSnapshot = await uploadTask;
 
       final String imageUrl = await taskSnapshot.ref.getDownloadURL();
-      final userId = UserManager.currentUserId;
+      final User? user = FirebaseAuth.instance.currentUser;
 
-      if (userId == null) {
+      if (user == null) {
         throw Exception('User not logged in');
       }
 
@@ -142,11 +142,10 @@ class _AddPartPageState extends State<AddPartPage> {
         'isNew': _isNew,
         'price': double.parse(_priceController.text),
         'description': _descriptionController.text,
-        'user_id': userId, // Ürünü ekleyen kullanıcı kimliği
+        'user_id': user.uid,
       });
 
-      // Realtime Database'deki kullanıcı belgesine ürün kimliğini ekleme
-      DatabaseReference realtimeUserRef = FirebaseDatabase.instance.ref().child('users').child(userId);
+      DatabaseReference realtimeUserRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
       await realtimeUserRef.child('products').update({
         partDocRef.id: true,
       });
