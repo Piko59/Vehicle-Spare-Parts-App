@@ -149,6 +149,7 @@ Future<void> _getCurrentLocation() async {
           searchController: _searchController,
           userName: _userName ?? 'Guest',
         ),
+        backgroundColor: Colors.white, // Add this line
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

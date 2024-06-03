@@ -5,7 +5,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_page.dart';
-import 'home_page.dart';
 import 'edit_profile_page.dart';
 import 'package:path/path.dart' as path;
 
@@ -17,6 +16,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   String? profileImage;
   String displayName = 'Anonymous User';
+  int productCount = 0;
+  int commentCount = 0;
   File? _imageFile;
   final picker = ImagePicker();
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -39,6 +40,8 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           profileImage = snapshot.child('imageUrl').value as String?;
           displayName = snapshot.child('name').value as String? ?? 'Anonymous User';
+          productCount = snapshot.child('productCount').value as int? ?? 0;
+          commentCount = snapshot.child('commentCount').value as int? ?? 0;
         });
       }
     } catch (e) {
@@ -98,39 +101,22 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Widget _buildProfileImage() {
-    return Stack(
-      children: <Widget>[
-        CircleAvatar(
-          backgroundImage: profileImage != null
-              ? NetworkImage(profileImage!)
-              : AssetImage('assets/default_user_image.jpg') as ImageProvider,
-          radius: 95,
-        ),
-        Positioned(
-          right: 4,
-          top: 4,
-          child: GestureDetector(
-            onTap: _pickImage,
-            child: Icon(
-              Icons.camera_alt,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('My Account',
+        leading: IconButton(
+          icon: Icon(Icons.camera_alt, color: Colors.white),
+          onPressed: () {
+            _pickImage();
+          },
+        ),
+        title: Text('Profile',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Color(0xFF00A9B7),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
             icon: Icon(Icons.edit, color: Colors.white),
@@ -143,89 +129,182 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      body: Column(
-        children: <Widget>[
-          Container(
-            color: Color(0xFF00A9B7),
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
-            child: Column(
+      body: SingleChildScrollView(
+        child: Stack(
+          children: <Widget>[
+            Column(
               children: <Widget>[
-                _buildProfileImage(),
-                SizedBox(height: 10),
-                Text(
-                  displayName,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                Container(
+                  height: 300.0,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [
+                        Color(0xFFFF76CE),
+                        Color(0xFFA3D8FF)
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: ListView(
-              children: <Widget>[
-                _buildMenuButton(context, 'Log Out', null, _signOut),
-              ],
+            Positioned(
+              left: 16.0,
+              right: 16.0,
+              top: 200.0,
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 40),
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            const Text(
+                              'Products',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              productCount.toString(),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            const Text(
+                              'Comments',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              commentCount.toString(),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String count) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            spreadRadius: 1,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: <Widget>[
-          Text(
-            count,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+            Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                margin: const EdgeInsets.only(top: 130),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 5),
+                ),
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.white,
+                  backgroundImage: profileImage != null ? NetworkImage(profileImage!) : null,
+                  child: profileImage == null
+                      ? const Icon(
+                          Icons.person,
+                          size: 60,
+                          color: Colors.grey,
+                        )
+                      : null,
+                ),
+              ),
             ),
-          ),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
+            Padding(
+              padding: const EdgeInsets.only(top: 420.0),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.person),
+                    title: Text('Edit Profile'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => EditProfilePage()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.shopping_bag),
+                    title: Text('My Products'),
+                    onTap: () {
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.comment),
+                    title: Text('Comments'),
+                    onTap: () {
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.help),
+                    title: Text('Help & Support'),
+                    onTap: () {
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.privacy_tip),
+                    title: Text('Privacy Policy'),
+                    onTap: () {
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.settings),
+                    title: Text('Settings'),
+                    onTap: () {
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.logout),
+                    title: Text('Sign Out'),
+                    onTap: () {
+                      _signOut();
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuButton(BuildContext context, String title, Widget? page, [VoidCallback? onTap]) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 72.0),
-      child: ListTile(
-        title: Text(title),
-        onTap: onTap ??
-            () {
-              if (page != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => page),
-                );
-              }
-            },
+          ],
+        ),
       ),
     );
   }
