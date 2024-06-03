@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class ChatPage extends StatefulWidget {
   _ChatPageState createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   final TextEditingController _controller = TextEditingController();
   final DatabaseReference _messagesRef = FirebaseDatabase.instance.ref();
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -31,10 +32,12 @@ class _ChatPageState extends State<ChatPage> {
   String? otherUserProfileImage;
   String onlineStatus = "offline";
   String typingStatus = "";
+  Timer? _typingTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     _setUserOnlineStatus(true);
@@ -92,6 +95,24 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _setUserOnlineStatus(false);
+    _setTypingStatus(false);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state == AppLifecycleState.detached) {
+      _setUserOnlineStatus(false);
+      _setTypingStatus(false);
+    } else if (state == AppLifecycleState.resumed) {
+      _setUserOnlineStatus(true);
+    }
   }
 
   void _setUserOnlineStatus(bool isOnline) {
@@ -160,6 +181,7 @@ class _ChatPageState extends State<ChatPage> {
     }
     _controller.clear();
     _selectedImage = null;
+    _setTypingStatus(false);
     scrollToBottom();
   }
 
@@ -196,7 +218,7 @@ class _ChatPageState extends State<ChatPage> {
             children: <Widget>[
               ListTile(
                 leading: Icon(Icons.edit),
-                title: Text('Düzenle'),
+                title: Text('Edit'),
                 onTap: () {
                   Navigator.pop(context);
                   _editMessage(message['id']);
@@ -204,7 +226,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
               ListTile(
                 leading: Icon(Icons.delete),
-                title: Text('Sil'),
+                title: Text('Delete'),
                 onTap: () {
                   Navigator.pop(context);
                   _deleteMessage(message['id']);
@@ -234,6 +256,13 @@ class _ChatPageState extends State<ChatPage> {
 
   void _setTypingStatus(bool isTyping) {
     _messagesRef.child('conversations/${widget.conversationId}/typing/$currentUserId').set(isTyping);
+  }
+
+  void _startTypingTimer() {
+    _typingTimer?.cancel();
+    _typingTimer = Timer(Duration(seconds: 1), () {
+      _setTypingStatus(false);
+    });
   }
 
   Widget _buildMessage(Map<String, dynamic> message) {
@@ -318,11 +347,7 @@ class _ChatPageState extends State<ChatPage> {
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    "$onlineStatus",
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                  Text(
-                    "$typingStatus",
+                    typingStatus.isNotEmpty ? typingStatus : onlineStatus,
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
@@ -401,23 +426,16 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
+                    onChanged: (text) {
+                      _setTypingStatus(text.isNotEmpty);
+                      _startTypingTimer();
+                    },
                     decoration: InputDecoration(
-                      hintText: "Write a message",
+                      hintText: "Type a message",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30.0),
                       ),
                     ),
-                    maxLines: null,
-                    onChanged: (text) {
-                      if (text.isNotEmpty) {
-                        _setTypingStatus(true);
-                      } else {
-                        _setTypingStatus(false);
-                      }
-                    },
-                    onEditingComplete: () {
-                      _setTypingStatus(false);
-                    },
                   ),
                 ),
                 IconButton(
