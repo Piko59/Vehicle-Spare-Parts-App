@@ -22,130 +22,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   late GoogleMapController mapController;
   final FocusNode _searchFocusNode = FocusNode();
 
-  List<String> businessCategories = [
-    'Tire Shop',
-    'Dent Repair',
-    'Carburetor Repair',
-    'Modification Shop',
-    'Engine Repair',
-    'Body Shop'
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocation();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null) {
-        setState(() {
-          _fetchUserName(user.uid);
-        });
-      }
-    });
-  }
-
-  Future<void> _fetchUserName(String uid) async {
-    DatabaseReference ref = FirebaseDatabase.instance
-        .reference()
-        .child('users')
-        .child(uid)
-        .child('name');
-    DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
-    if (snapshot.exists) {
-      setState(() {
-        _userName = snapshot.value as String?;
-      });
-    }
-  }
-
-Future<void> _getCurrentLocation() async {
-  try {
-    Location location = new Location();
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-    LocationData _locationData;
-
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return;
-      }
-    }
-
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-
-    _locationData = await location.getLocation();
-    setState(() {
-      _currentLocation = _locationData;
-    });
-  } catch (e) {
-    print('Error getting location: $e');
-  }
-}
-
-
-  void _showEmergencyDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Emergency Categories'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: List.generate(
-                businessCategories.length,
-                (index) => ListTile(
-                  title: Text(businessCategories[index]),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BusinessListPage(
-                          category: businessCategories[index],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _navigateToFullScreenMap(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => FullscreenPage()),
-    );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -153,7 +29,7 @@ Future<void> _getCurrentLocation() async {
       },
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight + 20),
+          preferredSize: Size.fromHeight(kToolbarHeight + 40),
           child: AppBar(
             flexibleSpace: Container(
               decoration: const BoxDecoration(
@@ -234,7 +110,128 @@ Future<void> _getCurrentLocation() async {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        setState(() {
+          _fetchUserName(user.uid);
+        });
+      }
+    });
+  }
 
+  Future<void> _fetchUserName(String uid) async {
+    DatabaseReference ref = FirebaseDatabase.instance
+        .reference()
+        .child('users')
+        .child(uid)
+        .child('name');
+    DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
+    if (snapshot.exists) {
+      setState(() {
+        _userName = snapshot.value as String?;
+      });
+    }
+  }
+
+Future<void> _getCurrentLocation() async {
+  try {
+    Location location = new Location();
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _locationData = await location.getLocation();
+    setState(() {
+      _currentLocation = _locationData;
+    });
+  } catch (e) {
+    print('Error getting location: $e');
+  }
+}
+
+  List<String> businessCategories = [
+    'Tire Shop',
+    'Dent Repair',
+    'Carburetor Repair',
+    'Modification Shop',
+    'Engine Repair',
+    'Body Shop'
+  ];
+  void _showEmergencyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Emergency Categories'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: List.generate(
+                businessCategories.length,
+                (index) => ListTile(
+                  title: Text(businessCategories[index]),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BusinessListPage(
+                          category: businessCategories[index],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _navigateToFullScreenMap(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => FullscreenPage()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
 
   @override
   bool get wantKeepAlive => true; // Add this line
@@ -488,9 +485,6 @@ class StoreTile extends StatelessWidget {
     );
   }
 }
-
-
-
 
 class VehiclePartIcons extends StatelessWidget {
   @override

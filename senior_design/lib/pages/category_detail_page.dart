@@ -24,6 +24,18 @@ class CategoryDetailPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomLeft,
+              end: Alignment.topRight,
+              colors: [
+                Color(0xFFFF76CE),
+                Color(0xFFA3D8FF),
+              ],
+            ),
+          ),
+        ),
       ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
@@ -73,6 +85,7 @@ class CategoryDetailPage extends StatelessWidget {
                         brand: part['brand'],
                         isNew: part['isNew'],
                         year: part['year'],
+                        userId: part['user_id'], // userId parametresini ekledik
                       ),
                     ),
                   );

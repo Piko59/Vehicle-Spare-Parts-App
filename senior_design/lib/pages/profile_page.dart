@@ -112,9 +112,6 @@ class _ProfilePageState extends State<ProfilePage> {
             _pickImage();
           },
         ),
-        title: Text('Profile',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -138,8 +135,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   height: 300.0,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                       colors: [
                         Color(0xFFFF76CE),
                         Color(0xFFA3D8FF)

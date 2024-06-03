@@ -28,11 +28,28 @@ class _ChatPageState extends State<ChatPage> {
   String? otherUserId;
   String? otherUsername;
   XFile? _selectedImage;
+  String? otherUserProfileImage;
+  String onlineStatus = "offline"; // Initial online status
+  String typingStatus = ""; // Initial typing status
 
   @override
   void initState() {
     super.initState();
     currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+    // Kullanıcının online durumunu ayarla
+    _setUserOnlineStatus(true);
+
+    // Kullanıcı bağlantısını kaybettiğinde offline olarak ayarla
+    FirebaseDatabase.instance.ref(".info/connected").onValue.listen((event) {
+      bool isConnected = event.snapshot.value as bool;
+      if (isConnected) {
+        _setUserOnlineStatus(true);
+      } else {
+        _setUserOnlineStatus(false);
+      }
+    });
+
     _messagesRef.child('conversations/${widget.conversationId}/messages').orderByChild('timestamp').onValue.listen((event) {
       var snapshot = event.snapshot.value;
       if (snapshot != null) {
@@ -79,16 +96,36 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  void _setUserOnlineStatus(bool isOnline) {
+    _messagesRef.child('users/$currentUserId/online').set(isOnline);
+  }
+
   void _getOtherUserDetails() async {
     DataSnapshot participantsSnapshot = await _messagesRef.child('conversations/${widget.conversationId}/participants').get();
     if (participantsSnapshot.exists) {
       Map participants = participantsSnapshot.value as Map;
       otherUserId = participants.keys.firstWhere((key) => key != currentUserId);
 
-      DataSnapshot userSnapshot = await _messagesRef.child('users/$otherUserId/username').get();
+      DataSnapshot userSnapshot = await _messagesRef.child('users/$otherUserId').get();
       if (userSnapshot.exists) {
+        var userData = userSnapshot.value as Map;
         setState(() {
-          otherUsername = userSnapshot.value as String?;
+          otherUsername = userData['username'];
+          otherUserProfileImage = userData['imageUrl'];
+        });
+
+        // Listen for online status changes
+        _messagesRef.child('users/$otherUserId/online').onValue.listen((event) {
+          setState(() {
+            onlineStatus = event.snapshot.value == true ? "online" : "offline";
+          });
+        });
+
+        // Listen for typing status changes
+        _messagesRef.child('conversations/${widget.conversationId}/typing/$otherUserId').onValue.listen((event) {
+          setState(() {
+            typingStatus = event.snapshot.value == true ? "typing..." : "";
+          });
         });
       }
     }
@@ -199,12 +236,17 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  void _setTypingStatus(bool isTyping) {
+    _messagesRef.child('conversations/${widget.conversationId}/typing/$currentUserId').set(isTyping);
+  }
+
   Widget _buildMessage(Map<String, dynamic> message) {
     if (message['text'] != null) {
       return Text(
         message['text'],
         style: TextStyle(
           color: message['isMe'] ? Colors.white : Colors.black,
+          fontSize: 16,
         ),
       );
     } else if (message['imageUrl'] != null) {
@@ -239,15 +281,62 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "${otherUsername ?? 'Loading...'}",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
+                colors: [
+                  Color(0xFFFF76CE),
+                  Color(0xFFA3D8FF),
+                ],
+              ),
+            ),
+          ),
+          toolbarHeight: 65, // AppBar'ın yüksekliği
+          leadingWidth: 250, // Leading genişliğini artırmak için
+          leading: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              if (otherUserProfileImage != null)
+                SizedBox(
+                  width: 50, // Genişliği arttırmak için
+                  height: 50, // Yüksekliği arttırmak için
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(otherUserProfileImage!),
+                  ),
+                ),
+              SizedBox(width: 10), // Profil fotoğrafı ile metin arasında boşluk bırakmak için
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "${otherUsername ?? 'Loading...'}",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "$onlineStatus",
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  Text(
+                    "$typingStatus",
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          backgroundColor: Colors.transparent,
+          iconTheme: IconThemeData(color: Colors.white),
+          actionsIconTheme: IconThemeData(color: Colors.white),
         ),
-        backgroundColor: Color(0xFF00A9B7),
-        iconTheme: IconThemeData(color: Colors.white),
-        actionsIconTheme: IconThemeData(color: Colors.white),
-      ),
       body: Column(
         children: <Widget>[
           Expanded(
@@ -264,7 +353,7 @@ class _ChatPageState extends State<ChatPage> {
                       padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
                       margin: EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
                       decoration: BoxDecoration(
-                        color: message['isMe'] ? Color(0xFF00A9B7) : Colors.grey[300],
+                        color: message['isMe'] ? Color(0xFF5BBCFF) : Colors.grey[300],
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -274,7 +363,7 @@ class _ChatPageState extends State<ChatPage> {
                             offset: Offset(0, 1),
                           ),
                         ],
-                        border: message['id'] == editingMessageId ? Border.all(color: Colors.red, width: 2) : null,
+                        border: message['id'] == editingMessageId ? Border.all(color: Colors.red, width: 4) : null,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -317,12 +406,22 @@ class _ChatPageState extends State<ChatPage> {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: "Bir mesaj yaz",
+                      hintText: "Write a message",
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5.0),
+                        borderRadius: BorderRadius.circular(30.0),
                       ),
                     ),
                     maxLines: null,
+                    onChanged: (text) {
+                      if (text.isNotEmpty) {
+                        _setTypingStatus(true);
+                      } else {
+                        _setTypingStatus(false);
+                      }
+                    },
+                    onEditingComplete: () {
+                      _setTypingStatus(false);
+                    },
                   ),
                 ),
                 IconButton(

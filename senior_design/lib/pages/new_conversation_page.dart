@@ -66,18 +66,33 @@ class _NewConversationPageState extends State<NewConversationPage> {
     DatabaseEvent event = await userRef.once();
     Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
     String username = userData['username'] as String? ?? 'Unknown';
-    String imageUrl = userData['imageUrl'] as String? ?? 'assets/default_user_image.jpg';
+    String imageUrl = userData['imageUrl'] as String? ?? 'assets/default_user_avatar.png';
     return {'username': username, 'imageUrl': imageUrl};
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("New Conversation"),
-        backgroundColor: Color(0xFF00A9B7),
-        iconTheme: IconThemeData(color: Colors.white),
-        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.0),
+        child: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
+                colors: [
+                  Color(0xFFFF76CE),
+                  Color(0xFFA3D8FF),
+                ],
+              ),
+            ),
+          ),
+          title: Text("New Conversation"),
+          backgroundColor: Colors.transparent,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -98,7 +113,7 @@ class _NewConversationPageState extends State<NewConversationPage> {
                             return ListTile(
                               leading: CircleAvatar(
                                 radius: 30,
-                                backgroundImage: AssetImage('assets/default_user_image.jpg'),
+                                backgroundImage: AssetImage('assets/default_user_avatar.png'),
                               ),
                               title: Text('Loading...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                             );
@@ -106,7 +121,7 @@ class _NewConversationPageState extends State<NewConversationPage> {
                             return ListTile(
                               leading: CircleAvatar(
                                 radius: 30,
-                                backgroundImage: AssetImage('assets/default_user_image.jpg'),
+                                backgroundImage: AssetImage('assets/default_user_avatar.png'),
                               ),
                               title: Text('Error loading user', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                             );
@@ -122,7 +137,7 @@ class _NewConversationPageState extends State<NewConversationPage> {
                               title: Text(userDetails['username']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               subtitle: Text("Tap to start a conversation", style: TextStyle(fontSize: 14)),
                               onTap: () => _createConversation(userId),
-                              trailing: Icon(Icons.arrow_forward, color: Color(0xFF00A9B7)),
+                              trailing: Icon(Icons.arrow_forward, color: Color(0xFFFF0080)),
                             );
                           }
                         },

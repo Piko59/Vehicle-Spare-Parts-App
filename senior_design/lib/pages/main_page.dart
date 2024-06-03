@@ -78,7 +78,7 @@ class _MainPageState extends State<MainPage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFFE86BBB),
+        selectedItemColor: Color(0xFFFF0080),
         unselectedItemColor: Color(0xFFBDBDBD),
         onTap: _onItemTapped,
       ),
@@ -90,7 +90,7 @@ class _MainPageState extends State<MainPage> {
           child: FloatingActionButton(
             onPressed: _onFabPressed,
             child: Icon(Icons.add, color: Colors.white),
-            backgroundColor: Color(0xFFA3D8FF),
+            backgroundColor: Color(0xFF5BBCFF),
           ),
         ),
       ),
