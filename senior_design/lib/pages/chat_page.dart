@@ -29,18 +29,16 @@ class _ChatPageState extends State<ChatPage> {
   String? otherUsername;
   XFile? _selectedImage;
   String? otherUserProfileImage;
-  String onlineStatus = "offline"; // Initial online status
-  String typingStatus = ""; // Initial typing status
+  String onlineStatus = "offline";
+  String typingStatus = "";
 
   @override
   void initState() {
     super.initState();
     currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-    // Kullanıcının online durumunu ayarla
     _setUserOnlineStatus(true);
 
-    // Kullanıcı bağlantısını kaybettiğinde offline olarak ayarla
     FirebaseDatabase.instance.ref(".info/connected").onValue.listen((event) {
       bool isConnected = event.snapshot.value as bool;
       if (isConnected) {
@@ -114,14 +112,12 @@ class _ChatPageState extends State<ChatPage> {
           otherUserProfileImage = userData['imageUrl'];
         });
 
-        // Listen for online status changes
         _messagesRef.child('users/$otherUserId/online').onValue.listen((event) {
           setState(() {
             onlineStatus = event.snapshot.value == true ? "online" : "offline";
           });
         });
 
-        // Listen for typing status changes
         _messagesRef.child('conversations/${widget.conversationId}/typing/$otherUserId').onValue.listen((event) {
           setState(() {
             typingStatus = event.snapshot.value == true ? "typing..." : "";
@@ -294,8 +290,8 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
           ),
-          toolbarHeight: 65, // AppBar'ın yüksekliği
-          leadingWidth: 250, // Leading genişliğini artırmak için
+          toolbarHeight: 65,
+          leadingWidth: 250,
           leading: Row(
             children: [
               IconButton(
@@ -306,13 +302,13 @@ class _ChatPageState extends State<ChatPage> {
               ),
               if (otherUserProfileImage != null)
                 SizedBox(
-                  width: 50, // Genişliği arttırmak için
-                  height: 50, // Yüksekliği arttırmak için
+                  width: 50,
+                  height: 50,
                   child: CircleAvatar(
                     backgroundImage: NetworkImage(otherUserProfileImage!),
                   ),
                 ),
-              SizedBox(width: 10), // Profil fotoğrafı ile metin arasında boşluk bırakmak için
+              SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,

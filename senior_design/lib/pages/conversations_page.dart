@@ -12,7 +12,6 @@ class ConversationsPage extends StatefulWidget {
 class _ConversationsPageState extends State<ConversationsPage> with AutomaticKeepAliveClientMixin {
   late Query _conversationsRef;
   String? _userId;
-  Map<String, Map<String, String>> _userDetailsCache = {};
   String _searchQuery = '';
   TextEditingController _searchController = TextEditingController();
   FocusNode _focusNode = FocusNode();
@@ -51,17 +50,12 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
   }
 
   Future<Map<String, String>> _getUserDetails(String userId) async {
-    if (_userDetailsCache.containsKey(userId)) {
-      return _userDetailsCache[userId]!;
-    }
     DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId');
     DatabaseEvent event = await userRef.once();
     Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
     String username = userData['username'] as String? ?? 'Unknown';
     String imageUrl = userData['imageUrl'] as String? ?? '';
-    var userDetails = {'username': username, 'imageUrl': imageUrl};
-    _userDetailsCache[userId] = userDetails;
-    return userDetails;
+    return {'username': username, 'imageUrl': imageUrl};
   }
 
   String _formatTimestamp(int? timestamp) {
@@ -139,9 +133,8 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
           child: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                  begin: Alignment.bottomLeft,
-
-                  end: Alignment.topRight,
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
                 colors: [
                   Color(0xFFFF76CE),
                   Color(0xFFA3D8FF),
@@ -150,10 +143,10 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
             ),
             child: AppBar(
               title: Text('Conversations',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24.0,)),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24.0)),
               backgroundColor: Colors.transparent,
               iconTheme: IconThemeData(color: Colors.white),
-              elevation: 0, // AppBar'ın gölgesini kaldırır
+              elevation: 0,
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 16.0),
@@ -162,7 +155,7 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
                     child: ElevatedButton.icon(
                       icon: Icon(Icons.add, color: Colors.white, size: 16.0),
                       label: Text(
-                        'Add New ',
+                        'Add New',
                         style: TextStyle(color: Colors.white, fontSize: 12.0),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -194,7 +187,7 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
                 controller: _searchController,
                 focusNode: _focusNode,
                 decoration: InputDecoration(
-                  hintText: 'Search  users...',
+                  hintText: 'Search users...',
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30.0),
@@ -234,11 +227,7 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
                             var filteredConversations = sortedConversations.where((entry) {
                               var participants = Map<String, dynamic>.from(entry.value['participants']);
                               var otherUserId = participants.keys.firstWhere((id) => id != _userId, orElse: () => '');
-                              var userDetails = _userDetailsCache[otherUserId];
-                              if (userDetails != null) {
-                                return userDetails['username']!.toLowerCase().contains(_searchQuery);
-                              }
-                              return false;
+                              return otherUserId.isNotEmpty;
                             }).toList();
 
                             return ListView(

@@ -234,7 +234,7 @@ Future<void> _getCurrentLocation() async {
   @override
 
   @override
-  bool get wantKeepAlive => true; // Add this line
+  bool get wantKeepAlive => true;
 
 
   Widget _buildNearbyBusinessesMap() {

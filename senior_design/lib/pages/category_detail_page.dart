@@ -85,7 +85,7 @@ class CategoryDetailPage extends StatelessWidget {
                         brand: part['brand'],
                         isNew: part['isNew'],
                         year: part['year'],
-                        userId: part['user_id'], // userId parametresini ekledik
+                        userId: part['user_id'],
                       ),
                     ),
                   );

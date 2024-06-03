@@ -19,7 +19,6 @@ class LoginPage extends StatelessWidget {
       String email = emailController.text.trim();
       String password = passwordController.text.trim();
 
-      // Loading dialog göster
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -55,7 +54,7 @@ class LoginPage extends StatelessWidget {
               .showSnackBar(const SnackBar(content: Text('No user found.')));
         }
       } catch (e) {
-        Navigator.of(context).pop(); // Loading dialog'u kapat
+        Navigator.of(context).pop();
         String errorMessage = 'An error occurred. Please try again.';
         if (e is FirebaseAuthException) {
           errorMessage = e.message ?? errorMessage;

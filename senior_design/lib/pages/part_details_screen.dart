@@ -53,12 +53,10 @@ class _PartDetailScreenState extends State<PartDetailScreen> {
   Future<void> handleSendMessage() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      // Kullanıcı giriş yapmamışsa, giriş yapma sayfasına yönlendirme yapılabilir
       return;
     }
 
     if (currentUser.uid == widget.userId) {
-      // Ürün sahibi kullanıcı ile aynıysa, dialog göster
       showDialog(
         context: context,
         builder: (context) {
@@ -100,7 +98,6 @@ class _PartDetailScreenState extends State<PartDetailScreen> {
       }
     }
 
-    // Eğer mevcut bir konuşma yoksa yeni bir konuşma oluştur
     DatabaseReference newConversationRef = FirebaseDatabase.instance.ref('conversations').push();
     String newConversationId = newConversationRef.key!;
     await newConversationRef.set({
