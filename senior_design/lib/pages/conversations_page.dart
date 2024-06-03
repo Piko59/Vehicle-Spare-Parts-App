@@ -29,19 +29,15 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
       });
     });
 
-    _searchController.addListener(() {
-      if (!_focusNode.hasFocus) {
-        setState(() {
-          _searchQuery = _searchController.text.toLowerCase();
-        });
-      }
-    });
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _unfocusTextField();
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   Future<String?> _getUserId() async {
@@ -224,107 +220,116 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
                                 return bLastMessageTime.compareTo(aLastMessageTime);
                               });
 
-                            var filteredConversations = sortedConversations.where((entry) {
-                              var participants = Map<String, dynamic>.from(entry.value['participants']);
-                              var otherUserId = participants.keys.firstWhere((id) => id != _userId, orElse: () => '');
-                              return otherUserId.isNotEmpty;
-                            }).toList();
+                            return FutureBuilder<List<MapEntry<dynamic, dynamic>>>(
+                              future: _filterConversations(sortedConversations),
+                              builder: (context, filteredSnapshot) {
+                                if (filteredSnapshot.connectionState == ConnectionState.waiting) {
+                                  return Center(child: CircularProgressIndicator());
+                                } else if (filteredSnapshot.hasError) {
+                                  return Center(child: Text("Error filtering conversations"));
+                                } else if (!filteredSnapshot.hasData || filteredSnapshot.data!.isEmpty) {
+                                  return Center(child: Text("No conversations found"));
+                                }
 
-                            return ListView(
-                              children: filteredConversations.map((entry) {
-                                var key = entry.key;
-                                var value = Map<String, dynamic>.from(entry.value);
-                                var lastMessageEntry = value['messages'] != null && value['messages'].isNotEmpty
-                                    ? Map<String, dynamic>.from(value['messages'].entries.map((e) => e.value).reduce((a, b) => a['timestamp'] > b['timestamp'] ? a : b))
-                                    : {};
-                                var lastMessage = lastMessageEntry['text'] ?? 'No messages yet';
-                                var lastMessageTime = lastMessageEntry['timestamp'];
-                                var lastMessageSender = lastMessageEntry['senderId'] ?? '';
-                                var participants = Map<String, dynamic>.from(value['participants']);
-                                var otherUserId = participants.keys.firstWhere((id) => id != _userId, orElse: () => '');
+                                var filteredConversations = filteredSnapshot.data!;
 
-                                return FutureBuilder<Map<String, String>>(
-                                  future: _getUserDetails(otherUserId),
-                                  builder: (context, userSnapshot) {
-                                    if (userSnapshot.connectionState == ConnectionState.waiting) {
-                                      return ListTile(
-                                        leading: CircleAvatar(
-                                          radius: 30,
-                                          backgroundColor: Colors.grey[200],
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                        title: Text('Loading...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                        subtitle: Text(lastMessage, style: TextStyle(fontSize: 16)),
-                                      );
-                                    } else if (userSnapshot.hasError) {
-                                      return ListTile(
-                                        leading: CircleAvatar(
-                                          radius: 30,
-                                          backgroundImage: AssetImage('assets/default_user_avatar.png'),
-                                        ),
-                                        title: Text('Error loading name', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                        subtitle: Text(lastMessage, style: TextStyle(fontSize: 16)),
-                                      );
-                                    } else {
-                                      var userDetails = userSnapshot.data!;
-                                      var lastMessagePrefix = lastMessageSender == _userId ? 'You: ' : '${userDetails['username']}: ';
-                                      return ListTile(
-                                        leading: GestureDetector(
-                                          onTap: () => _showFullImage(context, userDetails['imageUrl']!),
-                                          child: CircleAvatar(
-                                            radius: 30,
-                                            backgroundImage: userDetails['imageUrl']!.isEmpty
-                                                ? AssetImage("assets/default_user_avatar.png") as ImageProvider
-                                                : NetworkImage(userDetails['imageUrl']!),
-                                          ),
-                                        ),
-                                        title: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(userDetails['username']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                            Text(_formatTimestamp(lastMessageTime), style: TextStyle(fontSize: 14, color: Colors.grey)),
-                                          ],
-                                        ),
-                                        subtitle: lastMessage == "No messages yet"
-                                            ? Text('No messages yet', style: TextStyle(fontSize: 16))
-                                            : Text('$lastMessagePrefix$lastMessage', style: TextStyle(fontSize: 16)),
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => ChatPage(conversationId: key)),
+                                return ListView(
+                                  children: filteredConversations.map((entry) {
+                                    var key = entry.key;
+                                    var value = Map<String, dynamic>.from(entry.value);
+                                    var lastMessageEntry = value['messages'] != null && value['messages'].isNotEmpty
+                                        ? Map<String, dynamic>.from(value['messages'].entries.map((e) => e.value).reduce((a, b) => a['timestamp'] > b['timestamp'] ? a : b))
+                                        : {};
+                                    var lastMessage = lastMessageEntry['text'] ?? 'No messages yet';
+                                    var lastMessageTime = lastMessageEntry['timestamp'];
+                                    var lastMessageSender = lastMessageEntry['senderId'] ?? '';
+                                    var participants = Map<String, dynamic>.from(value['participants']);
+                                    var otherParticipantId = participants.keys.firstWhere((id) => id != _userId);
+
+                                    return FutureBuilder<Map<String, String>>(
+                                      future: _getUserDetails(otherParticipantId),
+                                      builder: (context, userSnapshot) {
+                                        if (userSnapshot.connectionState == ConnectionState.waiting) {
+                                          return ListTile(
+                                            leading: CircleAvatar(
+                                              radius: 30,
+                                              backgroundColor: Colors.grey[200],
+                                              child: CircularProgressIndicator(),
+                                            ),
+                                            title: Text('Loading...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                            subtitle: Text(lastMessage, style: TextStyle(fontSize: 16)),
                                           );
-                                        },
-                                        onLongPress: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: Text("Delete Conversation"),
-                                                content: Text("Are you sure you want to delete this conversation?"),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context).pop();
-                                                    },
-                                                    child: Text("Cancel"),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      _deleteConversation(key, participants);
-                                                      Navigator.of(context).pop();
-                                                    },
-                                                    child: Text("Delete"),
-                                                  ),
-                                                ],
+                                        } else if (userSnapshot.hasError) {
+                                          return ListTile(
+                                            leading: CircleAvatar(
+                                              radius: 30,
+                                              backgroundImage: AssetImage('assets/default_user_avatar.png'),
+                                            ),
+                                            title: Text('Error loading name', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                            subtitle: Text(lastMessage, style: TextStyle(fontSize: 16)),
+                                          );
+                                        } else {
+                                          var userDetails = userSnapshot.data!;
+                                          var lastMessagePrefix = lastMessageSender == _userId ? 'You: ' : '${userDetails['username']}: ';
+                                          return ListTile(
+                                            leading: GestureDetector(
+                                              onTap: () => _showFullImage(context, userDetails['imageUrl']!),
+                                              child: CircleAvatar(
+                                                radius: 30,
+                                                backgroundImage: userDetails['imageUrl']!.isEmpty
+                                                    ? AssetImage("assets/default_user_avatar.png") as ImageProvider
+                                                    : NetworkImage(userDetails['imageUrl']!),
+                                              ),
+                                            ),
+                                            title: Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(userDetails['username']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                Text(_formatTimestamp(lastMessageTime), style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                              ],
+                                            ),
+                                            subtitle: lastMessage == "No messages yet"
+                                                ? Text('No messages yet', style: TextStyle(fontSize: 16))
+                                                : Text('$lastMessagePrefix$lastMessage', style: TextStyle(fontSize: 16)),
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => ChatPage(conversationId: key)),
+                                              );
+                                            },
+                                            onLongPress: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: Text("Delete Conversation"),
+                                                    content: Text("Are you sure you want to delete this conversation?"),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context).pop();
+                                                        },
+                                                        child: Text("Cancel"),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          _deleteConversation(key, participants);
+                                                          Navigator.of(context).pop();
+                                                        },
+                                                        child: Text("Delete"),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
                                               );
                                             },
                                           );
-                                        },
-                                      );
-                                    }
-                                  },
+                                        }
+                                      },
+                                    );
+                                  }).toList(),
                                 );
-                              }).toList(),
+                              },
                             );
                           }
                         }
@@ -340,4 +345,24 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
 
   @override
   bool get wantKeepAlive => true;
+
+  Future<List<MapEntry<dynamic, dynamic>>> _filterConversations(List<MapEntry<dynamic, dynamic>> conversations) async {
+    if (_searchQuery.isEmpty) {
+      return conversations;
+    }
+
+    List<MapEntry<dynamic, dynamic>> filteredConversations = [];
+    for (var entry in conversations) {
+      var participants = Map<String, dynamic>.from(entry.value['participants']);
+      var otherParticipantId = participants.keys.firstWhere((id) => id != _userId);
+      var userDetails = await _getUserDetails(otherParticipantId);
+      var username = userDetails['username']?.toLowerCase() ?? '';
+
+      if (username.contains(_searchQuery)) {
+        filteredConversations.add(entry);
+      }
+    }
+
+    return filteredConversations;
+  }
 }
