@@ -20,6 +20,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   String? _userName;
   LocationData? _currentLocation;
   late GoogleMapController mapController;
+  final FocusNode _searchFocusNode = FocusNode();
 
   List<String> businessCategories = [
     'Tire Shop',
@@ -138,21 +139,77 @@ Future<void> _getCurrentLocation() async {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    super.build(context); // Add this line
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        appBar: SearchAppBar(
-          searchController: _searchController,
-          userName: _userName ?? 'Guest',
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight + 20),
+          child: AppBar(
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    Color(0xFFFF76CE),
+                    Color(0xFFA3D8FF),
+                  ],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: kToolbarHeight, left: 8.0, right: 8.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: TextField(
+                              controller: _searchController,
+                              focusNode: _searchFocusNode,
+                              decoration: InputDecoration(
+                                hintText: 'Search...',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                                prefixIcon: Icon(Icons.search, color: Colors.grey),
+                              ),
+                              onChanged: (value) {
+                              },
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.notifications, color: Colors.white),
+                          onPressed: () {
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        backgroundColor: Colors.white, // Add this line
         body: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildNearbyBusinessesMap(),
               VehiclePartIcons(),
@@ -168,7 +225,7 @@ Future<void> _getCurrentLocation() async {
                 _showEmergencyDialog(context);
               },
               backgroundColor: Colors.red,
-              child: Icon(Icons.warning),
+              child: Icon(Icons.warning, color: Colors.white),
               heroTag: 'emergency',
             ),
           ],
@@ -177,8 +234,11 @@ Future<void> _getCurrentLocation() async {
     );
   }
 
+
+
   @override
   bool get wantKeepAlive => true; // Add this line
+
 
   Widget _buildNearbyBusinessesMap() {
     return Padding(
@@ -187,7 +247,7 @@ Future<void> _getCurrentLocation() async {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Nearby Businesses',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           SizedBox(height: 8),
           Container(
             height: 200,
@@ -196,8 +256,8 @@ Future<void> _getCurrentLocation() async {
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 5,
-                  blurRadius: 7,
+                  spreadRadius: 3,
+                  blurRadius: 6,
                   offset: Offset(0, 3),
                 ),
               ],
@@ -227,56 +287,6 @@ Future<void> _getCurrentLocation() async {
       ),
     );
   }
-}
-
-
-
-class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final TextEditingController searchController;
-  final String userName;
-
-  SearchAppBar(
-      {Key? key, required this.searchController, required this.userName})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Color(0xFF00A9B7),
-      flexibleSpace: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('Welcome, $userName',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  hintText: 'What do you want?',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Size get preferredSize => Size.fromHeight(120.0);
 }
 
 class PopularStores extends StatefulWidget {
@@ -348,19 +358,18 @@ class _PopularStoresState extends State<PopularStores> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Popular Stores',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextButton(
                 onPressed: () {},
                 child: Text('See All', style: TextStyle(color: Colors.blue)),
@@ -369,7 +378,7 @@ class _PopularStoresState extends State<PopularStores> {
           ),
         ),
         Container(
-          height: 200,
+          height: 150,
           child: _stores.isEmpty
               ? Center(child: CircularProgressIndicator())
               : ListView.builder(
@@ -493,7 +502,7 @@ class VehiclePartIcons extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Text(
             'Search Vehicles Part Spares',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
         Row(
@@ -505,7 +514,7 @@ class VehiclePartIcons extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: Image.asset('assets/car.png', width: 70, height: 70),
+                icon: Image.asset('assets/car.png', width: 60, height: 60),
                 onPressed: () {
                   Navigator.push(
                       context,
@@ -521,7 +530,7 @@ class VehiclePartIcons extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: Image.asset('assets/motorcycle.png', width: 70, height: 70),
+                icon: Image.asset('assets/motorcycle.png', width: 60, height: 60),
                 onPressed: () {
                   Navigator.push(
                       context,
@@ -537,7 +546,7 @@ class VehiclePartIcons extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: Image.asset('assets/bicycle.png', width: 70, height: 70),
+                icon: Image.asset('assets/bicycle.png', width: 60, height: 60),
                 onPressed: () {
                   Navigator.push(
                       context,

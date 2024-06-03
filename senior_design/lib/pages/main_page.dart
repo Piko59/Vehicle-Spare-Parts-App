@@ -78,8 +78,8 @@ class _MainPageState extends State<MainPage> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFF00A9B7),
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: Color(0xFFE86BBB),
+        unselectedItemColor: Color(0xFFBDBDBD),
         onTap: _onItemTapped,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -89,8 +89,8 @@ class _MainPageState extends State<MainPage> {
         child: FittedBox(
           child: FloatingActionButton(
             onPressed: _onFabPressed,
-            child: Icon(Icons.add),
-            backgroundColor: Color(0xFF00A9B7),
+            child: Icon(Icons.add, color: Colors.white),
+            backgroundColor: Color(0xFFA3D8FF),
           ),
         ),
       ),
