@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'select_location_page.dart';
+import 'package:flutter/services.dart';
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -16,8 +17,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool _isBusiness = false;
 
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
 
   String _businessCategory = 'Tire Shop';
   LatLng? _businessLocation;
@@ -48,19 +49,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
         setState(() {
           _isBusiness = userData['profileType'] == 'business';
           _nameController.text = userData['name'];
-          _usernameController.text =
-              userData['username'];
           _phoneNumberController.text = userData['phoneNumber'];
+          if (userData.containsKey('location')) {
+            _businessLocation = LatLng(
+              userData['location']['latitude'],
+              userData['location']['longitude'],
+            );
+            _locationController.text =
+                '${_businessLocation!.latitude}, ${_businessLocation!.longitude}';
+          }
           if (_isBusiness) {
             _businessCategory = userData['businessCategory'] ?? 'Tire Shop';
             if (!businessCategories.contains(_businessCategory)) {
               _businessCategory = 'Tire Shop';
-            }
-            if (userData.containsKey('location')) {
-              _businessLocation = LatLng(
-                userData['location']['latitude'],
-                userData['location']['longitude'],
-              );
             }
           }
         });
@@ -71,8 +72,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _usernameController.dispose();
     _phoneNumberController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -85,6 +86,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (selectedLocation != null) {
       setState(() {
         _businessLocation = selectedLocation;
+        _locationController.text =
+            '${_businessLocation!.latitude}, ${_businessLocation!.longitude}';
       });
     }
   }
@@ -118,25 +121,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   });
                 },
               ),
-              if (!_isBusiness) ...[
-                _buildTextInput('Name', _nameController),
-                _buildTextInput('Username', _usernameController),
-                _buildTextInput('Phone Number', _phoneNumberController),
-              ] else ...[
-                _buildTextInput('Business Name', _nameController),
+              _buildTextInput(_isBusiness ?
+               'Business Name' : 'Name', _nameController),
+              _buildTextInput(_isBusiness ?
+               'Business Phone Number' : 'Phone Number', _phoneNumberController, isPhoneNumber: true),
+              if (_isBusiness) ...[
                 _buildBusinessCategoryDropdown(),
-                _buildTextInput(
-                    'Business Phone Number', _phoneNumberController),
-                _buildLocationSelector(),
               ],
+              _buildLocationSelector(_isBusiness ? 'Business Location' : 'Location'),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF00A9B7),
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  textStyle:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 child: Text(
                   'Save',
@@ -150,24 +149,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildTextInput(String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
+Widget _buildTextInput(String label, TextEditingController controller, {bool isPhoneNumber = false}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
       ),
-    );
-  }
+      keyboardType: isPhoneNumber ? TextInputType.phone : TextInputType.text,
+      inputFormatters: isPhoneNumber
+          ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
+          : null,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter $label';
+        } else if (label.contains('Name') && value.length > 18) {
+          return '$label cannot be more than 18 characters';
+        }
+        return null;
+      },
+    ),
+  );
+}
+
 
   Widget _buildBusinessCategoryDropdown() {
     return Padding(
@@ -199,39 +205,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildLocationSelector() {
+  Widget _buildLocationSelector(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Business Address',
-            style: TextStyle(fontSize: 16),
-          ),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              ElevatedButton(
-                onPressed: _selectLocation,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF00A9B7),
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                ),
-                child: Text(
-                  'Select Location',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              SizedBox(width: 10),
-              if (_businessLocation != null)
-                Text(
-                  'Location Selected',
-                  style: TextStyle(fontSize: 16, color: Colors.green),
-                ),
-            ],
-          ),
-        ],
+      child: TextFormField(
+        controller: _locationController,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        readOnly: true,
+        onTap: _selectLocation,
       ),
     );
   }
@@ -243,19 +227,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
         String userId = user.uid;
         Map<String, dynamic> profileData = {
           'name': _nameController.text,
-          'username': _usernameController.text,
           'phoneNumber': _phoneNumberController.text,
           'profileType': _isBusiness ? 'business' : 'personal',
+          'location': {
+            'latitude': _businessLocation!.latitude,
+            'longitude': _businessLocation!.longitude,
+          },
         };
 
         if (_isBusiness) {
           profileData['businessCategory'] = _businessCategory;
-          if (_businessLocation != null) {
-            profileData['location'] = {
-              'latitude': _businessLocation!.latitude,
-              'longitude': _businessLocation!.longitude,
-            };
-          }
         }
 
         _databaseReference.child(userId).update(profileData).then((_) {

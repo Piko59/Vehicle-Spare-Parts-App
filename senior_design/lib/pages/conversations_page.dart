@@ -49,9 +49,9 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
     DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId');
     DatabaseEvent event = await userRef.once();
     Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
-    String username = userData['username'] as String? ?? 'Unknown';
+    String name = userData['name'] as String? ?? 'Unknown';
     String imageUrl = userData['imageUrl'] as String? ?? '';
-    return {'username': username, 'imageUrl': imageUrl};
+    return {'name': name, 'imageUrl': imageUrl};
   }
 
   String _formatTimestamp(int? timestamp) {
@@ -270,7 +270,7 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
                                           );
                                         } else {
                                           var userDetails = userSnapshot.data!;
-                                          var lastMessagePrefix = lastMessageSender == _userId ? 'You: ' : '${userDetails['username']}: ';
+                                          var lastMessagePrefix = lastMessageSender == _userId ? 'You: ' : '${userDetails['name']}: ';
                                           return ListTile(
                                             leading: GestureDetector(
                                               onTap: () => _showFullImage(context, userDetails['imageUrl']!),
@@ -284,7 +284,7 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
                                             title: Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Text(userDetails['username']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                Text(userDetails['name']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                                 Text(_formatTimestamp(lastMessageTime), style: TextStyle(fontSize: 14, color: Colors.grey)),
                                               ],
                                             ),
@@ -356,9 +356,9 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
       var participants = Map<String, dynamic>.from(entry.value['participants']);
       var otherParticipantId = participants.keys.firstWhere((id) => id != _userId);
       var userDetails = await _getUserDetails(otherParticipantId);
-      var username = userDetails['username']?.toLowerCase() ?? '';
+      var name = userDetails['name']?.toLowerCase() ?? '';
 
-      if (username.contains(_searchQuery)) {
+      if (name.contains(_searchQuery)) {
         filteredConversations.add(entry);
       }
     }

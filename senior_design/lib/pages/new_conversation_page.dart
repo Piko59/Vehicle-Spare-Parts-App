@@ -65,9 +65,9 @@ class _NewConversationPageState extends State<NewConversationPage> {
     DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId');
     DatabaseEvent event = await userRef.once();
     Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
-    String username = userData['username'] as String? ?? 'Unknown';
+    String name = userData['name'] as String? ?? 'Unknown';
     String imageUrl = userData['imageUrl'] as String? ?? 'assets/default_user_avatar.png';
-    return {'username': username, 'imageUrl': imageUrl};
+    return {'name': name, 'imageUrl': imageUrl};
   }
 
   @override
@@ -134,7 +134,7 @@ class _NewConversationPageState extends State<NewConversationPage> {
                                     ? AssetImage(userDetails['imageUrl']!) as ImageProvider
                                     : NetworkImage(userDetails['imageUrl']!),
                               ),
-                              title: Text(userDetails['username']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              title: Text(userDetails['name']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               subtitle: Text("Tap to start a conversation", style: TextStyle(fontSize: 14)),
                               onTap: () => _createConversation(userId),
                               trailing: Icon(Icons.arrow_forward, color: Color(0xFFFF0080)),

@@ -27,7 +27,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   String? editingMessageId;
   bool _isEditing = false;
   String? otherUserId;
-  String? otherUsername;
+  String? otherName;
   XFile? _selectedImage;
   String? otherUserProfileImage;
   String onlineStatus = "offline";
@@ -129,7 +129,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
       if (userSnapshot.exists) {
         var userData = userSnapshot.value as Map;
         setState(() {
-          otherUsername = userData['username'];
+          otherName = userData['name'];
           otherUserProfileImage = userData['imageUrl'];
         });
 
@@ -320,7 +320,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
             ),
           ),
           toolbarHeight: 65,
-          leadingWidth: 250,
+          leadingWidth: 300,
           leading: Row(
             children: [
               IconButton(
@@ -343,7 +343,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "${otherUsername ?? 'Loading...'}",
+                    "${otherName ?? 'Loading...'}",
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   Text(

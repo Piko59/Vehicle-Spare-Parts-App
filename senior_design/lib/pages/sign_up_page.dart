@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart'; // Firebase Realtime Database ekleyin
 import 'login_page.dart';
 import 'main_page.dart';
 import 'package:senior_design/components/square_tile.dart';
@@ -8,13 +9,16 @@ class SignUpPage extends StatelessWidget {
   SignUpPage({super.key});
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref().child('users'); // Database referansı oluşturun
 
   void signUpUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
+      String name = nameController.text.trim();
       String email = emailController.text.trim();
       String password = passwordController.text.trim();
       String confirmPassword = confirmPasswordController.text.trim();
@@ -31,6 +35,12 @@ class SignUpPage extends StatelessWidget {
             email: email, password: password);
 
         if (userCredential.user != null) {
+          // Kullanıcıyı Firebase Realtime Database'e kaydedin
+          _dbRef.child(userCredential.user!.uid).set({
+            'name': name,
+            'email': email,
+          });
+
           Navigator.of(context).pushReplacement(
               MaterialPageRoute(builder: (_) => MainPage()));
         } else {
@@ -60,13 +70,7 @@ class SignUpPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 60),
-                  Image.asset(
-                    'assets/logo.png',
-                    height: 150,
-                    width: 150,
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 80),
                   const Text(
                     'Welcome,',
                     style: TextStyle(color: Colors.black, fontSize: 32, fontWeight: FontWeight.bold),
@@ -76,6 +80,37 @@ class SignUpPage extends StatelessWidget {
                     style: TextStyle(color: Colors.black, fontSize: 16),
                   ),
                   const SizedBox(height: 35),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: TextFormField(
+                      autofocus: false,
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        prefixIcon: const Icon(Icons.person, color: Colors.black),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => nameController.clear(),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your name.';
+                        } else if (value.length > 18) {
+                          return 'Name cannot be more than 18 characters.';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: TextFormField(

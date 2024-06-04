@@ -101,6 +101,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _navigateToEditProfile() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditProfilePage()),
+    );
+    _loadUserProfile();  // EditProfilePage'den döndükten sonra kullanıcı profilini tekrar yükle
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,10 +126,7 @@ class _ProfilePageState extends State<ProfilePage> {
           IconButton(
             icon: Icon(Icons.edit, color: Colors.white),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => EditProfilePage()),
-              );
+              _navigateToEditProfile();
             },
           ),
         ],
@@ -254,10 +259,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     leading: Icon(Icons.person),
                     title: Text('Edit Profile'),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => EditProfilePage()),
-                      );
+                      _navigateToEditProfile();
                     },
                   ),
                   ListTile(
