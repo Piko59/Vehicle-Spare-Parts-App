@@ -203,27 +203,37 @@ class _AddPartPageState extends State<AddPartPage> {
         title: Text('Add Part',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Color(0xFF00A9B7),
-        iconTheme: IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomLeft,
+              end: Alignment.topRight,
+              colors: [
+                Color(0xFFFF76CE),
+                Color(0xFFA3D8FF),
+              ],
+            ),
+          ),
+        ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Form(
           child: ListView(
             children: <Widget>[
-              if (_image != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Image.file(_image!),
+              GestureDetector(
+                onTap: _uploadImage,
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: _image == null
+                      ? Center(child: Text('Choose an Image'))
+                      : Image.file(_image!),
                 ),
-              ElevatedButton(
-                onPressed: _uploadImage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF00A9B7),
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                child: Text('Select Image', style: TextStyle(color: Colors.white)),
               ),
               SizedBox(height: 20),
               DropdownButtonFormField<String>(
@@ -247,51 +257,56 @@ class _AddPartPageState extends State<AddPartPage> {
                   );
                 }).toList(),
               ),
-              if (_selectedVehicleType != null)
-                DropdownButtonFormField<String>(
-                  value: _selectedCategory,
-                  decoration: InputDecoration(
-                    labelText: 'Select Category',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedCategory = newValue;
-                      _selectedPartCategory = newValue;
-                    });
-                  },
-                  items: vehicleCategories[_selectedVehicleType]!
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+              SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: InputDecoration(
+                  labelText: 'Select Category',
+                  border: OutlineInputBorder(),
                 ),
-              if (_selectedVehicleType != null)
-                DropdownButtonFormField<String>(
-                  value: _selectedBrand,
-                  decoration: InputDecoration(
-                    labelText: 'Select Brand',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedBrand = newValue;
-                    });
-                  },
-                  items: vehicleBrands[_selectedVehicleType]!
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedCategory = newValue;
+                    _selectedPartCategory = newValue;
+                  });
+                },
+                items: (_selectedVehicleType != null
+                        ? vehicleCategories[_selectedVehicleType]!
+                        : <String>[])
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: _selectedBrand,
+                decoration: InputDecoration(
+                  labelText: 'Select Brand',
+                  border: OutlineInputBorder(),
                 ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedBrand = newValue;
+                  });
+                },
+                items: (_selectedVehicleType != null
+                        ? vehicleBrands[_selectedVehicleType]!
+                        : <String>[])
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 10),
               _buildTextInput('Title', _titleController),
-              _buildTextInput('Year', _yearController),
-              _buildTextInput('Price', _priceController),
               _buildTextInput('Description', _descriptionController),
+              _buildTextInput('Price', _priceController, inputType: TextInputType.number),
+              _buildTextInput('Year', _yearController, inputType: TextInputType.number),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -316,11 +331,34 @@ class _AddPartPageState extends State<AddPartPage> {
                   : ElevatedButton(
                       onPressed: _savePart,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF00A9B7),
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                        textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        padding: const EdgeInsets.all(0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      child: Text('Save Part', style: TextStyle(color: Colors.white)),
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(15.0),
+                          alignment: Alignment.center,
+                          constraints: BoxConstraints(minHeight: 50),
+                          child: const Text(
+                            'Add Spare Part',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
             ],
           ),
@@ -329,7 +367,7 @@ class _AddPartPageState extends State<AddPartPage> {
     );
   }
 
-  Widget _buildTextInput(String label, TextEditingController controller) {
+  Widget _buildTextInput(String label, TextEditingController controller, {TextInputType inputType = TextInputType.text}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -338,6 +376,7 @@ class _AddPartPageState extends State<AddPartPage> {
           labelText: label,
           border: OutlineInputBorder(),
         ),
+        keyboardType: inputType,
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter $label';
