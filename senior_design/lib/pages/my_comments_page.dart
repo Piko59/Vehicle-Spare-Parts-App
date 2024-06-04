@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:firebase_auth/firebase_auth.dart';  // Bu satırı ekleyin
+import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
 
@@ -46,7 +46,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                   stream: FirebaseDatabase.instance
                       .reference()
                       .child('users')
-                      .child(FirebaseAuth.instance.currentUser?.uid ?? '')  // Bu satırı düzelttik
+                      .child(FirebaseAuth.instance.currentUser?.uid ?? '')
                       .child('receivedRatingsAndComments')
                       .onValue,
                   builder: (context, snapshot) {

@@ -1,16 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:path/path.dart' as path;
 
-import 'other_user_products_page.dart';  // OtherUserProductsPage'i import edin
-import 'other_user_comments_page.dart';  // OtherUserCommentsPage'i import edin
+import 'other_user_products_page.dart';
+import 'other_user_comments_page.dart';
 
 class OtherUserProfilePage extends StatefulWidget {
-  final String userId; // Gösterilecek kullanıcının UID'si
+  final String userId;
 
   OtherUserProfilePage({required this.userId});
 
@@ -84,6 +79,7 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Stack(
@@ -191,17 +187,44 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 5),
                 ),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white,
-                  backgroundImage: profileImage != null ? NetworkImage(profileImage!) : null,
-                  child: profileImage == null
-                      ? const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Colors.grey,
-                        )
-                      : null,
+                child: GestureDetector(
+                  onTap: () {
+                    if (profileImage != null) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Container(
+                              width: 300,
+                              height: 300,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                image: DecorationImage(
+                                  image: NetworkImage(profileImage!),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }
+                  },
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.white,
+                    backgroundImage: profileImage != null ? NetworkImage(profileImage!) : null,
+                    child: profileImage == null
+                        ? const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Colors.grey,
+                          )
+                        : null,
+                  ),
                 ),
               ),
             ),

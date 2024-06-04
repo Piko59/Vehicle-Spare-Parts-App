@@ -150,7 +150,7 @@ class _ProfilePageState extends State<ProfilePage> {
       context,
       MaterialPageRoute(builder: (context) => EditProfilePage()),
     );
-    _loadUserProfile();  // EditProfilePage'den döndükten sonra kullanıcı profilini tekrar yükle
+    _loadUserProfile();
   }
 
   @override
@@ -158,12 +158,6 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.camera_alt, color: Colors.white),
-          onPressed: () {
-            _pickImage();
-          },
-        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -281,17 +275,59 @@ class _ProfilePageState extends State<ProfilePage> {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 5),
                 ),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white,
-                  backgroundImage: profileImage != null ? NetworkImage(profileImage!) : null,
-                  child: profileImage == null
-                      ? const Icon(
-                          Icons.person,
-                          size: 60,
-                          color: Colors.grey,
-                        )
-                      : null,
+                child: GestureDetector(
+                  onTap: () {
+                    if (profileImage != null) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 300,
+                                  height: 300,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    image: DecorationImage(
+                                      image: NetworkImage(profileImage!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: IconButton(
+                                    icon: Icon(Icons.camera_alt, color: Colors.white),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      _pickImage();
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    }
+                  },
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: Colors.white,
+                    backgroundImage: profileImage != null ? NetworkImage(profileImage!) : null,
+                    child: profileImage == null
+                        ? const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Colors.grey,
+                          )
+                        : null,
+                  ),
                 ),
               ),
             ),

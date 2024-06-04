@@ -8,7 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-import 'other_user_profile_page.dart';  // OtherUserProfilePage'i import edin
+import 'other_user_profile_page.dart';
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -308,8 +308,19 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          flexibleSpace: Container(
+      appBar: AppBar(
+        flexibleSpace: InkWell(
+          onTap: () {
+            if (otherUserId != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OtherUserProfilePage(userId: otherUserId!),
+                ),
+              );
+            }
+          },
+          child: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomLeft,
@@ -321,55 +332,96 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
               ),
             ),
           ),
-          toolbarHeight: 65,
-          leadingWidth: 300,
-          leading: Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-              if (otherUserProfileImage != null)
-                SizedBox(
-                  width: 50,
-                  height: 50,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OtherUserProfilePage(userId: otherUserId!),
-                        ),
-                      );
-                    },
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(otherUserProfileImage!),
+        ),
+        toolbarHeight: 65,
+        leadingWidth: 300,
+leading: GestureDetector(
+  onTap: () {
+    if (otherUserId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OtherUserProfilePage(userId: otherUserId!),
+        ),
+      );
+    }
+  },
+  child: Row(
+    children: [
+      IconButton(
+        icon: Icon(Icons.arrow_back),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+      if (otherUserProfileImage != null)
+        GestureDetector(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      image: DecorationImage(
+                        image: NetworkImage(otherUserProfileImage!),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-              SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "${otherName ?? 'Loading...'}",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    typingStatus.isNotEmpty ? typingStatus : onlineStatus,
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
-                  ),
-                ],
-              ),
-            ],
+                );
+              },
+            );
+          },
+          child: SizedBox(
+            width: 50,
+            height: 50,
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(otherUserProfileImage!),
+            ),
           ),
-          backgroundColor: Colors.transparent,
-          iconTheme: IconThemeData(color: Colors.white),
-          actionsIconTheme: IconThemeData(color: Colors.white),
         ),
+      SizedBox(width: 10),
+      GestureDetector(
+        onTap: () {
+          if (otherUserId != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtherUserProfilePage(userId: otherUserId!),
+              ),
+            );
+          }
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "${otherName ?? 'Loading...'}",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              typingStatus.isNotEmpty ? typingStatus : onlineStatus,
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    ],
+  ),
+),
+
+        backgroundColor: Colors.transparent,
+        iconTheme: IconThemeData(color: Colors.white),
+        actionsIconTheme: IconThemeData(color: Colors.white),
+      ),
       body: Column(
         children: <Widget>[
           Expanded(

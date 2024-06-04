@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
+import 'add_comment_page.dart';
 
 class OtherUserCommentsPage extends StatefulWidget {
   final String userId;
@@ -13,37 +14,20 @@ class OtherUserCommentsPage extends StatefulWidget {
 }
 
 class _OtherUserCommentsPageState extends State<OtherUserCommentsPage> {
-  final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
-  List<Map<String, dynamic>> _comments = [];
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadUserComments();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
-  Future<void> _loadUserComments() async {
-    try {
-      final DatabaseEvent event = await _databaseRef.child('users/${widget.userId}/receivedRatingsAndComments').once();
-      final DataSnapshot snapshot = event.snapshot;
-      if (snapshot.value != null) {
-        Map<dynamic, dynamic> commentsMap = snapshot.value as Map<dynamic, dynamic>;
-        List<Map<String, dynamic>> commentsList = commentsMap.entries.map((entry) {
-          return {
-            'id': entry.key,
-            'rating': entry.value['rating'] ?? 0,
-            'comment': entry.value['comment'] ?? '',
-            'userId': entry.value['userId'] ?? '',
-            'timestamp': entry.value['timestamp'] ?? 0,
-          };
-        }).toList();
-
-        setState(() {
-          _comments = commentsList;
-        });
-      }
-    } catch (e) {
-      print('Error loading user comments: $e');
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     }
   }
 
@@ -92,9 +76,14 @@ class _OtherUserCommentsPageState extends State<OtherUserCommentsPage> {
                       if (dataSnapshot.value != null) {
                         Map<dynamic, dynamic> data = dataSnapshot.value as Map<dynamic, dynamic>;
                         List<dynamic> itemKeys = data.keys.toList()
-                          ..sort((a, b) => b.compareTo(a));
+                          ..sort((a, b) => a.compareTo(b));
+
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _scrollToBottom();
+                        });
 
                         return ListView.builder(
+                          controller: _scrollController,
                           itemCount: itemKeys.length,
                           itemBuilder: (context, index) {
                             String key = itemKeys[index];
@@ -102,7 +91,6 @@ class _OtherUserCommentsPageState extends State<OtherUserCommentsPage> {
                             String comment = data[key]['comment'] as String? ?? '';
                             String userId = data[key]['userId'] as String? ?? '';
                             int timestamp = data[key]['timestamp'] ?? 0;
-                            DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
                             String formattedDate = formatTimestamp(timestamp);
 
                             return FutureBuilder<DataSnapshot>(
@@ -196,6 +184,44 @@ class _OtherUserCommentsPageState extends State<OtherUserCommentsPage> {
                       return Center(child: Text('No ratings and comments found', style: TextStyle(color: Colors.black)));
                     }
                   },
+                ),
+              ),
+              SizedBox(height: 16),
+              Center(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFFFF76CE),
+                        Color(0xFFA3D8FF),
+                      ],
+                      begin: Alignment.bottomLeft,
+                      end: Alignment.topRight,
+                    ),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      bool result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AddCommentPage(userId: widget.userId)),
+                      );
+                      if (result == true) {
+                        setState(() {});
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: EdgeInsets.symmetric(vertical: 15),
+                      textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    child: Text(
+                      'Add Comment',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 ),
               ),
             ],

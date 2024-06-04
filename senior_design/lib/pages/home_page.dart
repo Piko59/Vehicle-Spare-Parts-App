@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -11,25 +10,28 @@ import 'fullscreen_page.dart';
 import 'business_details_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   final TextEditingController _searchController = TextEditingController();
-  String? _userName;
   LocationData? _currentLocation;
   late GoogleMapController mapController;
   final FocusNode _searchFocusNode = FocusNode();
 
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight + 40),
+          preferredSize: const Size.fromHeight(kToolbarHeight + 40),
           child: AppBar(
             flexibleSpace: Container(
               decoration: const BoxDecoration(
@@ -63,8 +65,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                                 ),
                                 filled: true,
                                 fillColor: Colors.white,
-                                contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-                                prefixIcon: Icon(Icons.search, color: Colors.grey),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                                prefixIcon: const Icon(Icons.search, color: Colors.grey),
                               ),
                               onChanged: (value) {
                               },
@@ -72,7 +74,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.notifications, color: Colors.white),
+                          icon: const Icon(Icons.notifications, color: Colors.white),
                           onPressed: () {
                           },
                         ),
@@ -88,8 +90,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           child: Column(
             children: [
               _buildNearbyBusinessesMap(),
-              VehiclePartIcons(),
-              PopularStores(),
+              const VehiclePartIcons(),
+              const PopularStores(),
             ],
           ),
         ),
@@ -101,7 +103,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 _showEmergencyDialog(context);
               },
               backgroundColor: Colors.red,
-              child: Icon(Icons.warning, color: Colors.white),
+              child: const Icon(Icons.warning, color: Colors.white),
               heroTag: 'emergency',
             ),
           ],
@@ -114,60 +116,39 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   void initState() {
     super.initState();
     _getCurrentLocation();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null) {
-        setState(() {
-          _fetchUserName(user.uid);
-        });
-      }
-    });
   }
 
-  Future<void> _fetchUserName(String uid) async {
-    DatabaseReference ref = FirebaseDatabase.instance
-        .reference()
-        .child('users')
-        .child(uid)
-        .child('name');
-    DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
-    if (snapshot.exists) {
+  Future<void> _getCurrentLocation() async {
+    try {
+      Location location = Location();
+      bool serviceEnabled;
+      PermissionStatus permissionGranted;
+      LocationData locationData;
+
+      serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) {
+          return;
+        }
+      }
+
+      permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          return;
+        }
+      }
+
+      locationData = await location.getLocation();
       setState(() {
-        _userName = snapshot.value as String?;
+        _currentLocation = locationData;
       });
+    } catch (e) {
+      debugPrint('Error getting location: $e');
     }
   }
-
-Future<void> _getCurrentLocation() async {
-  try {
-    Location location = new Location();
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-    LocationData _locationData;
-
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return;
-      }
-    }
-
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-
-    _locationData = await location.getLocation();
-    setState(() {
-      _currentLocation = _locationData;
-    });
-  } catch (e) {
-    print('Error getting location: $e');
-  }
-}
 
   List<String> businessCategories = [
     'Tire Shop',
@@ -177,12 +158,13 @@ Future<void> _getCurrentLocation() async {
     'Engine Repair',
     'Body Shop'
   ];
+
   void _showEmergencyDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Emergency Categories'),
+          title: const Text('Emergency Categories'),
           content: SingleChildScrollView(
             child: Column(
               children: List.generate(
@@ -209,7 +191,7 @@ Future<void> _getCurrentLocation() async {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('Close'),
+              child: const Text('Close'),
             ),
           ],
         );
@@ -232,10 +214,7 @@ Future<void> _getCurrentLocation() async {
   }
 
   @override
-
-  @override
   bool get wantKeepAlive => true;
-
 
   Widget _buildNearbyBusinessesMap() {
     return Padding(
@@ -243,9 +222,9 @@ Future<void> _getCurrentLocation() async {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nearby Businesses',
+          const Text('Nearby Businesses',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -255,14 +234,14 @@ Future<void> _getCurrentLocation() async {
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 6,
-                  offset: Offset(0, 3),
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: _currentLocation == null
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : GoogleMap(
                       myLocationEnabled: true,
                       myLocationButtonEnabled: true,
@@ -287,6 +266,8 @@ Future<void> _getCurrentLocation() async {
 }
 
 class PopularStores extends StatefulWidget {
+  const PopularStores({Key? key}) : super(key: key);
+
   @override
   _PopularStoresState createState() => _PopularStoresState();
 }
@@ -302,25 +283,25 @@ class _PopularStoresState extends State<PopularStores> {
 
   Future<void> _fetchStores() async {
     try {
-      DatabaseReference ref = FirebaseDatabase.instance.reference().child('businesses');
+      DatabaseReference ref = FirebaseDatabase.instance.ref().child('businesses');
       DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
-      print('Fetched businesses snapshot: ${snapshot.value}');
+      debugPrint('Fetched businesses snapshot: ${snapshot.value}');
 
       if (snapshot.exists) {
         List<Map<String, dynamic>> stores = [];
         Map<dynamic, dynamic> businesses = snapshot.value as Map<dynamic, dynamic>;
-        print('Businesses data: $businesses');
+        debugPrint('Businesses data: $businesses');
 
         for (var businessUid in businesses.keys) {
           DatabaseReference userRef = FirebaseDatabase.instance
-              .reference()
+              .ref()
               .child('users')
               .child(businessUid);
           DataSnapshot userSnapshot = await userRef.once().then((event) => event.snapshot);
-          print('Fetched user snapshot for $businessUid: ${userSnapshot.value}');
+          debugPrint('Fetched user snapshot for $businessUid: ${userSnapshot.value}');
 
           if (userSnapshot.exists) {
-            print('User snapshot exists for $businessUid');
+            debugPrint('User snapshot exists for $businessUid');
             Map<dynamic, dynamic> userData = userSnapshot.value as Map<dynamic, dynamic>;
 
             String name = userData['name'] ?? 'Unknown';
@@ -337,21 +318,21 @@ class _PopularStoresState extends State<PopularStores> {
               'category': category,
               'phoneNumber': phoneNumber,
             });
-            print('Added store: $name');
+            debugPrint('Added store: $name');
           } else {
-            print('User snapshot for $businessUid does not exist');
+            debugPrint('User snapshot for $businessUid does not exist');
           }
         }
 
         setState(() {
           _stores = stores;
-          print('Stores list updated: $_stores');
+          debugPrint('Stores list updated: $_stores');
         });
       } else {
-        print('Businesses snapshot does not exist');
+        debugPrint('Businesses snapshot does not exist');
       }
     } catch (e) {
-      print('Error fetching stores: $e');
+      debugPrint('Error fetching stores: $e');
     }
   }
 
@@ -365,11 +346,11 @@ class _PopularStoresState extends State<PopularStores> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Popular Stores',
+              const Text('Popular Stores',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextButton(
                 onPressed: () {},
-                child: Text('See All', style: TextStyle(color: Colors.blue)),
+                child: const Text('See All', style: TextStyle(color: Colors.blue)),
               ),
             ],
           ),
@@ -377,7 +358,7 @@ class _PopularStoresState extends State<PopularStores> {
         Container(
           height: 150,
           child: _stores.isEmpty
-              ? Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator())
               : ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: _stores.length,
@@ -387,8 +368,6 @@ class _PopularStoresState extends State<PopularStores> {
                       imageUrl: _stores[index]['imageUrl'],
                       rating: _stores[index]['rating'],
                       businessUid: _stores[index]['businessUid'],
-                      businessCategory: _stores[index]['category'],
-                      businessPhoneNumber: _stores[index]['phoneNumber'],
                     );
                   },
                 ),
@@ -403,8 +382,6 @@ class StoreTile extends StatelessWidget {
   final String imageUrl;
   final double rating;
   final String businessUid;
-  final String businessCategory;
-  final String businessPhoneNumber;
 
   const StoreTile({
     Key? key,
@@ -412,8 +389,6 @@ class StoreTile extends StatelessWidget {
     required this.imageUrl,
     required this.rating,
     required this.businessUid,
-    required this.businessCategory,
-    required this.businessPhoneNumber,
   }) : super(key: key);
 
   @override
@@ -425,17 +400,13 @@ class StoreTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => BusinessDetailsPage(
               businessUid: businessUid,
-              businessName: name,
-              businessImageUrl: imageUrl,
-              businessCategory: businessCategory,
-              businessPhoneNumber: businessPhoneNumber,
             ),
           ),
         );
       },
       child: Container(
         width: 180,
-        margin: EdgeInsets.all(8),
+        margin: const EdgeInsets.all(8),
         child: Stack(
           children: [
             ClipRRect(
@@ -446,18 +417,18 @@ class StoreTile extends StatelessWidget {
               top: 8,
               right: 8,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.star, color: Colors.amber, size: 20),
-                    SizedBox(width: 4),
+                    const Icon(Icons.star, color: Colors.amber, size: 20),
+                    const SizedBox(width: 4),
                     Text(
                       rating.toStringAsFixed(1),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
@@ -472,7 +443,7 @@ class StoreTile extends StatelessWidget {
               left: 8,
               child: Text(
                 name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   backgroundColor: Colors.black54,
                   color: Colors.white,
@@ -487,6 +458,8 @@ class StoreTile extends StatelessWidget {
 }
 
 class VehiclePartIcons extends StatelessWidget {
+  const VehiclePartIcons({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -494,7 +467,7 @@ class VehiclePartIcons extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
+          child: const Text(
             'Search Vehicles Part Spares',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
@@ -503,7 +476,7 @@ class VehiclePartIcons extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0XFFEDEDED),
                 shape: BoxShape.circle,
               ),
@@ -517,9 +490,9 @@ class VehiclePartIcons extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(width: 20),
+            const SizedBox(width: 20),
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0XFFEDEDED),
                 shape: BoxShape.circle,
               ),
@@ -533,9 +506,9 @@ class VehiclePartIcons extends StatelessWidget {
                 },
               ),
             ),
-            SizedBox(width: 20),
+            const SizedBox(width: 20),
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0XFFEDEDED),
                 shape: BoxShape.circle,
               ),

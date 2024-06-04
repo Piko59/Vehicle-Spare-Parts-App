@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'part_details_screen.dart';
 
@@ -14,17 +13,14 @@ class OtherUserProductsPage extends StatefulWidget {
 }
 
 class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
-  late User _user;
   List<Map<String, dynamic>> _products = [];
   List<String> _productIds = [];
 
   @override
   void initState() {
     super.initState();
-    _user = _auth.currentUser!;
     _loadUserProducts();
   }
 
@@ -39,7 +35,7 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
           final productSnapshot = await _firestore.collection('parts').doc(productId).get();
           if (productSnapshot.exists) {
             final productData = productSnapshot.data() as Map<String, dynamic>;
-            productData['id'] = productId;  // Add the product ID to the product data
+            productData['id'] = productId;
             productList.add(productData);
             _productIds.add(productId);
           }
@@ -57,7 +53,12 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Products'),
+        title: Text(
+          'Products',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(

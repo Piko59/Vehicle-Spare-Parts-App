@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart'; // Firebase Realtime Database ekleyin
+import 'package:firebase_database/firebase_database.dart';
 import 'login_page.dart';
 import 'main_page.dart';
 import 'package:senior_design/components/square_tile.dart';
@@ -14,7 +14,7 @@ class SignUpPage extends StatelessWidget {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref().child('users'); // Database referansı oluşturun
+  final DatabaseReference _dbRef = FirebaseDatabase.instance.ref().child('users');
 
   void signUpUser(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
@@ -35,7 +35,6 @@ class SignUpPage extends StatelessWidget {
             email: email, password: password);
 
         if (userCredential.user != null) {
-          // Kullanıcıyı Firebase Realtime Database'e kaydedin
           _dbRef.child(userCredential.user!.uid).set({
             'name': name,
             'email': email,

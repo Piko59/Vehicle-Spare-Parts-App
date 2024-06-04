@@ -37,7 +37,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
           final productSnapshot = await _firestore.collection('parts').doc(productId).get();
           if (productSnapshot.exists) {
             final productData = productSnapshot.data() as Map<String, dynamic>;
-            productData['id'] = productId;  // Add the product ID to the product data
+            productData['id'] = productId;
             productList.add(productData);
             _productIds.add(productId);
           }
@@ -68,7 +68,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
 
       await _firestore.collection('parts').doc(productId).delete();
       await _databaseRef.child('users/${_user.uid}/products/$productId').remove();
-      _loadUserProducts();  // Reload the products list after deletion
+      _loadUserProducts();
     } catch (e) {
       print('Error deleting product: $e');
     }
@@ -107,7 +107,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
         builder: (context) => EditPartPage(productId: productId),
       ),
     ).then((_) {
-      _loadUserProducts(); // Refresh the product list after editing
+      _loadUserProducts();
     });
   }
 
@@ -151,7 +151,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
               itemCount: _products.length,
               itemBuilder: (context, index) {
                 final product = _products[index];
-                final productId = product['id'];  // Get the product ID from the product data
+                final productId = product['id'];
                 return ListTile(
                   leading: Container(
                     width: 50,

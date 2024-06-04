@@ -67,7 +67,7 @@ class _FullscreenPageState extends State<FullscreenPage> {
               snippet: value['businessCategory'] ?? 'No Category',
             ),
             onTap: () {
-              _navigateToBusinessDetail(key, value);
+              _navigateToBusinessDetail(key);
             },
           );
           setState(() {
@@ -85,16 +85,12 @@ class _FullscreenPageState extends State<FullscreenPage> {
     }
   }
 
-  void _navigateToBusinessDetail(String key, Map<String, dynamic> value) {
+  void _navigateToBusinessDetail(String key) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => BusinessDetailsPage(
           businessUid: key,
-          businessName: value['name'] ?? 'No Name',
-          businessImageUrl: value['imageUrl'] ?? '',
-          businessCategory: value['businessCategory'] ?? 'No Category',
-          businessPhoneNumber: value['phoneNumber'] ?? 'No Phone Number',
         ),
       ),
     );
@@ -158,7 +154,7 @@ class _FullscreenPageState extends State<FullscreenPage> {
                       children: _visibleBusinesses.values.map((business) {
                         return GestureDetector(
                           onTap: () {
-                            _navigateToBusinessDetail(business['key'], business);
+                            _navigateToBusinessDetail(business['key']);
                           },
                           child: Card(
                             margin: EdgeInsets.all(10.0),

@@ -76,25 +76,25 @@ class _ConversationsPageState extends State<ConversationsPage> with AutomaticKee
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              color: Colors.white,
-              child: imageUrl.isNotEmpty
-                  ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.contain,
-                    )
-                  : Image.asset(
-                      "assets/default_user_avatar.png",
-                      fit: BoxFit.contain,
-                    ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              image: DecorationImage(
+                image: NetworkImage(imageUrl),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         );
       },
     );
   }
+
 
   void _deleteConversation(String conversationId, Map<String, dynamic> participants) async {
     await FirebaseDatabase.instance.ref('conversations/$conversationId').remove();

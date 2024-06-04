@@ -167,7 +167,6 @@ class _AddPartPageState extends State<AddPartPage> {
 
       _showSuccessDialog();
     } catch (e) {
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to add part: $e'),
       ));
