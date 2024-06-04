@@ -8,6 +8,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import 'other_user_profile_page.dart';  // OtherUserProfilePage'i import edin
+
 class ChatPage extends StatefulWidget {
   final String conversationId;
 
@@ -333,8 +335,18 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                 SizedBox(
                   width: 50,
                   height: 50,
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(otherUserProfileImage!),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OtherUserProfilePage(userId: otherUserId!),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(otherUserProfileImage!),
+                    ),
                   ),
                 ),
               SizedBox(width: 10),

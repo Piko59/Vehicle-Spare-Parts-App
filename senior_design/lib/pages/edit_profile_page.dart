@@ -95,16 +95,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Edit Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.0),
+        child: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
+                colors: [
+                  Color(0xFFFF76CE),
+                  Color(0xFFA3D8FF),
+                ],
+              ),
+            ),
           ),
+          title: Text(
+            'Edit Profile',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          iconTheme: IconThemeData(color: Colors.white),
         ),
-        backgroundColor: Color(0xFF00A9B7),
-        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -121,25 +136,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   });
                 },
               ),
-              _buildTextInput(_isBusiness ?
-               'Business Name' : 'Name', _nameController),
-              _buildTextInput(_isBusiness ?
-               'Business Phone Number' : 'Phone Number', _phoneNumberController, isPhoneNumber: true),
+              _buildTextInput(_isBusiness ? 'Business Name' : 'Name', _nameController),
+              _buildTextInput(_isBusiness ? 'Business Phone Number' : 'Phone Number', _phoneNumberController, isPhoneNumber: true),
               if (_isBusiness) ...[
                 _buildBusinessCategoryDropdown(),
               ],
               _buildLocationSelector(_isBusiness ? 'Business Location' : 'Location'),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF00A9B7),
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFFFF76CE),
+                      Color(0xFFA3D8FF),
+                    ],
+                    begin: Alignment.bottomLeft,
+                    end: Alignment.topRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
-                child: Text(
-                  'Save',
-                  style: TextStyle(color: Colors.white),
+                child: ElevatedButton(
+                  onPressed: _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  child: Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ],
@@ -149,31 +176,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-Widget _buildTextInput(String label, TextEditingController controller, {bool isPhoneNumber = false}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(),
+  Widget _buildTextInput(String label, TextEditingController controller, {bool isPhoneNumber = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        keyboardType: isPhoneNumber ? TextInputType.phone : TextInputType.text,
+        inputFormatters: isPhoneNumber
+            ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
+            : null,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter $label';
+          } else if (label.contains('Name') && value.length > 18) {
+            return '$label cannot be more than 18 characters';
+          }
+          return null;
+        },
       ),
-      keyboardType: isPhoneNumber ? TextInputType.phone : TextInputType.text,
-      inputFormatters: isPhoneNumber
-          ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
-          : null,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter $label';
-        } else if (label.contains('Name') && value.length > 18) {
-          return '$label cannot be more than 18 characters';
-        }
-        return null;
-      },
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildBusinessCategoryDropdown() {
     return Padding(

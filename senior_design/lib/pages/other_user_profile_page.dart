@@ -4,39 +4,37 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login_page.dart';
-import 'edit_profile_page.dart';
 import 'package:path/path.dart' as path;
-import 'my_products_page.dart';
-import 'my_comments_page.dart';
 
-class ProfilePage extends StatefulWidget {
+import 'other_user_products_page.dart';  // OtherUserProductsPage'i import edin
+import 'other_user_comments_page.dart';  // OtherUserCommentsPage'i import edin
+
+class OtherUserProfilePage extends StatefulWidget {
+  final String userId; // Gösterilecek kullanıcının UID'si
+
+  OtherUserProfilePage({required this.userId});
+
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _OtherUserProfilePageState createState() => _OtherUserProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
   String? profileImage;
   String displayName = 'Anonymous User';
   int productCount = 0;
   int commentCount = 0;
-  File? _imageFile;
-  final picker = ImagePicker();
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  late User _user;
 
   @override
   void initState() {
     super.initState();
-    _user = _auth.currentUser!;
     _loadUserProfile();
   }
 
   Future<void> _loadUserProfile() async {
     try {
-      final DatabaseEvent event = await _databaseRef.child('users/${_user.uid}').once();
+      final DatabaseEvent event = await _databaseRef.child('users/${widget.userId}').once();
       final DataSnapshot snapshot = event.snapshot;
       if (snapshot.value != null) {
         setState(() {
@@ -53,7 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadProductCount() async {
     try {
-      final DatabaseEvent event = await _databaseRef.child('users/${_user.uid}/products').once();
+      final DatabaseEvent event = await _databaseRef.child('users/${widget.userId}/products').once();
       final DataSnapshot snapshot = event.snapshot;
       if (snapshot.value != null) {
         setState(() {
@@ -67,7 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadCommentCount() async {
     try {
-      final DatabaseEvent event = await _databaseRef.child('users/${_user.uid}/receivedRatingsAndComments').once();
+      final DatabaseEvent event = await _databaseRef.child('users/${widget.userId}/receivedRatingsAndComments').once();
       final DataSnapshot snapshot = event.snapshot;
       if (snapshot.value != null) {
         setState(() {
@@ -79,101 +77,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        _imageFile = File(pickedFile.path);
-        _uploadImageToStorage();
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
-
-  Future<void> _uploadImageToStorage() async {
-    if (_imageFile == null) return;
-    String fileName = path.basename(_imageFile!.path);
-    Reference storageRef = _storage.ref().child('profile_images/$fileName');
-
-    try {
-      await storageRef.putFile(_imageFile!);
-      String downloadURL = await storageRef.getDownloadURL();
-      setState(() {
-        profileImage = downloadURL;
-      });
-      _updateImageURL(downloadURL);
-    } catch (e) {
-      print('Error uploading image: $e');
-    }
-  }
-
-  Future<void> _updateImageURL(String downloadURL) async {
-    try {
-      await _databaseRef.child('users/${_user.uid}').update({'imageUrl': downloadURL});
-      print('Profile image URL updated successfully.');
-    } catch (e) {
-      print('Error updating profile image URL: $e');
-    }
-  }
-
-  Future<void> _navigateToMyProducts() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MyProductsPage()),
-    );
-  }
-  
-  Future<void> _navigateToMyComments() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MyCommentsPage()),
-    );
-  }
-
-  Future<void> _signOut() async {
-    try {
-      await _auth.signOut();
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-        (route) => false,
-      );
-    } catch (e) {
-      print('Error signing out: $e');
-    }
-  }
-
-  Future<void> _navigateToEditProfile() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditProfilePage()),
-    );
-    _loadUserProfile();  // EditProfilePage'den döndükten sonra kullanıcı profilini tekrar yükle
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.camera_alt, color: Colors.white),
-          onPressed: () {
-            _pickImage();
-          },
-        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: Colors.white),
-            onPressed: () {
-              _navigateToEditProfile();
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Stack(
@@ -300,43 +210,27 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: Icon(Icons.person),
-                    title: Text('Edit Profile'),
-                    onTap: () {
-                      _navigateToEditProfile();
-                    },
-                  ),
-                  ListTile(
                     leading: Icon(Icons.shopping_bag),
-                    title: Text('My Products'),
+                    title: Text('Products'),
                     onTap: () {
-                      _navigateToMyProducts();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OtherUserProductsPage(userId: widget.userId),
+                        ),
+                      );
                     },
                   ),
                   ListTile(
                     leading: Icon(Icons.comment),
-                    title: Text('My Comments'),
+                    title: Text('Comments'),
                     onTap: () {
-                      _navigateToMyComments();
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.help),
-                    title: Text('Help & Support'),
-                    onTap: () {
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.privacy_tip),
-                    title: Text('Privacy Policy'),
-                    onTap: () {
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.logout),
-                    title: Text('Logout'),
-                    onTap: () {
-                      _signOut();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OtherUserCommentsPage(userId: widget.userId),
+                        ),
+                      );
                     },
                   ),
                 ],

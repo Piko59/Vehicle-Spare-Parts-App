@@ -131,6 +131,8 @@ class _AddPartPageState extends State<AddPartPage> {
         throw Exception('User not logged in');
       }
 
+      final Timestamp timestamp = Timestamp.now();
+
       DocumentReference partDocRef = await FirebaseFirestore.instance.collection('parts').add({
         'image_url': imageUrl,
         'vehicle_type': _selectedVehicleType,
@@ -143,6 +145,7 @@ class _AddPartPageState extends State<AddPartPage> {
         'price': double.parse(_priceController.text),
         'description': _descriptionController.text,
         'user_id': user.uid,
+        'timestamp': timestamp,
       });
 
       DatabaseReference realtimeUserRef = FirebaseDatabase.instance.ref().child('users').child(user.uid);
