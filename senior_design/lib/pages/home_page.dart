@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:senior_design/pages/car_categories_page.dart';
-import 'package:senior_design/pages/motorcycle_categories_page.dart';
-import 'package:senior_design/pages/bicycle_categories_page.dart';
 import 'business_list_page.dart';
 import 'fullscreen_page.dart';
 import 'business_details_page.dart';
+import 'category_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -90,7 +88,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           child: Column(
             children: [
               _buildNearbyBusinessesMap(),
-              const VehiclePartIcons(),
+              VehiclePartIcons(onCategorySelected: _navigateToCategoryPage),
               const PopularStores(),
             ],
           ),
@@ -263,6 +261,43 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       ),
     );
   }
+
+  void _navigateToCategoryPage(String categoryType) {
+  List<String> categories;
+  switch (categoryType) {
+    case 'Car':
+      categories = [
+        'Ignition & Fuel', 'Exhaust', 'Electrical', 'Filter', 'Brake & Clutch', 'Heating & Ventilation & Air Conditioning',
+        'Mechanical', 'Engine', 'Transmission & Gear', 'Suspension & Steering',
+      ];
+      break;
+    case 'Motorcycle':
+      categories = [
+        'Clutch', 'Exhaust', 'Electrical', 'Brake', 'Fairing', 'Ventilation', 'Engine',
+        'Suspension', 'Transmission', 'Lubrication', 'Fuel System', 'Steering',
+      ];
+      break;
+    case 'Bicycle':
+      categories = [
+        'Handlebar', 'Brake', 'Rotor', 'Bearing', 'Rim', 'Frame', 'Drivetrain Components',
+        'Electric Components', 'Cockpit', 'Brake Pad',
+      ];
+      break;
+    default:
+      categories = [];
+  }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => CategoryPage(
+        categoryType: categoryType,
+        categories: categories,
+      ),
+    ),
+  );
+}
+
 }
 
 class PopularStores extends StatefulWidget {
@@ -458,7 +493,9 @@ class StoreTile extends StatelessWidget {
 }
 
 class VehiclePartIcons extends StatelessWidget {
-  const VehiclePartIcons({Key? key}) : super(key: key);
+  final Function(String) onCategorySelected;
+
+  const VehiclePartIcons({Key? key, required this.onCategorySelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -483,10 +520,7 @@ class VehiclePartIcons extends StatelessWidget {
               child: IconButton(
                 icon: Image.asset('assets/car.png', width: 60, height: 60),
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => CarCategoriesPage()));
+                  onCategorySelected('Car');
                 },
               ),
             ),
@@ -499,10 +533,7 @@ class VehiclePartIcons extends StatelessWidget {
               child: IconButton(
                 icon: Image.asset('assets/motorcycle.png', width: 60, height: 60),
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => MotorcycleCategoriesPage()));
+                  onCategorySelected('Motorcycle');
                 },
               ),
             ),
@@ -515,10 +546,7 @@ class VehiclePartIcons extends StatelessWidget {
               child: IconButton(
                 icon: Image.asset('assets/bicycle.png', width: 60, height: 60),
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => BicycleCategoriesPage()));
+                  onCategorySelected('Bicycle');
                 },
               ),
             ),
