@@ -61,10 +61,12 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                           itemCount: itemKeys.length,
                           itemBuilder: (context, index) {
                             String key = itemKeys[index];
-                            double rating = (data[key]['rating'] as num).toDouble();
-                            String comment = data[key]['comment'] as String? ?? '';
-                            String userId = data[key]['userId'] as String? ?? '';
-                            int timestamp = int.parse(key);
+                            Map<dynamic, dynamic> commentData = data[key] as Map<dynamic, dynamic>;
+                            double rating = (commentData['rating'] as num).toDouble();
+                            String comment = commentData['comment'] as String? ?? '';
+                            String userId = commentData['userId'] as String? ?? '';
+
+                            int timestamp = commentData['timestamp'] as int? ?? 0;
                             DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
                             String formattedDate = DateFormat('dd MMM yyyy HH:mm').format(date);
 
@@ -77,7 +79,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                               builder: (context, userSnapshot) {
                                 if (userSnapshot.hasData && userSnapshot.data != null) {
                                   Map<dynamic, dynamic> userData = userSnapshot.data!.value as Map<dynamic, dynamic>;
-                                  String username = userData['username'] as String? ?? 'Anonymous';
+                                  String username = userData['name'] as String? ?? 'Anonymous';
                                   String? userImageUrl = userData['imageUrl'] as String?;
 
                                   return Column(

@@ -335,89 +335,88 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         ),
         toolbarHeight: 65,
         leadingWidth: 300,
-leading: GestureDetector(
-  onTap: () {
-    if (otherUserId != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OtherUserProfilePage(userId: otherUserId!),
-        ),
-      );
-    }
-  },
-  child: Row(
-    children: [
-      IconButton(
-        icon: Icon(Icons.arrow_back),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-      ),
-      if (otherUserProfileImage != null)
-        GestureDetector(
+        leading: GestureDetector(
           onTap: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      image: DecorationImage(
-                        image: NetworkImage(otherUserProfileImage!),
-                        fit: BoxFit.cover,
-                      ),
+            if (otherUserId != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OtherUserProfilePage(userId: otherUserId!),
+                ),
+              );
+            }
+          },
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              if (otherUserProfileImage != null)
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            width: 300,
+                            height: 300,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              image: DecorationImage(
+                                image: NetworkImage(otherUserProfileImage!),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(otherUserProfileImage!),
                     ),
                   ),
-                );
-              },
-            );
-          },
-          child: SizedBox(
-            width: 50,
-            height: 50,
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(otherUserProfileImage!),
-            ),
+                ),
+              SizedBox(width: 10),
+              GestureDetector(
+                onTap: () {
+                  if (otherUserId != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OtherUserProfilePage(userId: otherUserId!),
+                      ),
+                    );
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "${otherName ?? 'Loading...'}",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      typingStatus.isNotEmpty ? typingStatus : onlineStatus,
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-      SizedBox(width: 10),
-      GestureDetector(
-        onTap: () {
-          if (otherUserId != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OtherUserProfilePage(userId: otherUserId!),
-              ),
-            );
-          }
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "${otherName ?? 'Loading...'}",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              typingStatus.isNotEmpty ? typingStatus : onlineStatus,
-              style: TextStyle(color: Colors.white70, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    ],
-  ),
-),
-
         backgroundColor: Colors.transparent,
         iconTheme: IconThemeData(color: Colors.white),
         actionsIconTheme: IconThemeData(color: Colors.white),

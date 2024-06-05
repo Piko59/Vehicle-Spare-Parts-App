@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
-import 'explore_page.dart';
+import 'search_page.dart';
 import 'add_part_page.dart';
 import 'conversations_page.dart';
 import 'profile_page.dart';
@@ -38,7 +38,7 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     final List<Widget> _widgetOptions = <Widget>[
       HomePage(),
-      ExplorePage(),
+      SearchPage(),
       Container(),
       ConversationsPage(),
       ProfilePage(),
@@ -62,7 +62,7 @@ class _MainPageState extends State<MainPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),
-            label: 'Explore',
+            label: 'Search',
           ),
           BottomNavigationBarItem(
             icon: Container(width: 0),

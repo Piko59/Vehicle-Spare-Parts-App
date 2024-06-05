@@ -98,7 +98,7 @@ class _OtherUserCommentsPageState extends State<OtherUserCommentsPage> {
                               builder: (context, userSnapshot) {
                                 if (userSnapshot.hasData && userSnapshot.data != null) {
                                   Map<dynamic, dynamic> userData = userSnapshot.data!.value as Map<dynamic, dynamic>;
-                                  String username = userData['username'] as String? ?? 'Anonymous';
+                                  String username = userData['name'] as String? ?? 'Anonymous';
                                   String? userImageUrl = userData['imageUrl'] as String?;
 
                                   return Column(
