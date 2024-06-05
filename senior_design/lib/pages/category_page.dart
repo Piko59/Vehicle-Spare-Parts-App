@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:senior_design/pages/category_detail_page.dart';
+import 'package:senior_design/pages/search_page.dart';
 
 class CategoryPage extends StatelessWidget {
   final String categoryType;
@@ -52,9 +52,9 @@ class CategoryPage extends StatelessWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CategoryDetailPage(
-                category: categoryType,
-                partCategory: categories[index],
+              builder: (context) => SearchPage(
+                initialVehicleType: categoryType,
+                initialCategory: categories[index],
               ),
             ),
           ),

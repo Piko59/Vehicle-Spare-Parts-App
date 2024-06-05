@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SearchPage extends StatefulWidget {
+  final String? initialVehicleType;
+  final String? initialCategory;
+
+  SearchPage({this.initialVehicleType, this.initialCategory});
+
   @override
   _SearchPageState createState() => _SearchPageState();
 }
@@ -13,6 +18,7 @@ class _SearchPageState extends State<SearchPage> {
   String? _selectedVehicleType;
   String? _selectedCategory;
   String? _selectedBrand;
+  String? _selectedSortOption;
 
   final List<String> vehicleTypes = ['Car', 'Motorcycle', 'Bicycle'];
   final Map<String, List<String>> vehicleCategories = {
@@ -80,6 +86,21 @@ class _SearchPageState extends State<SearchPage> {
     ],
   };
 
+  final List<String> sortOptions = [
+    'No order',
+    'Order by price ascending',
+    'Order by price descending',
+    'Order by year ascending',
+    'Order by year descending'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedVehicleType = widget.initialVehicleType;
+    _selectedCategory = widget.initialCategory;
+  }
+
   @override
   void dispose() {
     _minPriceController.dispose();
@@ -112,6 +133,23 @@ class _SearchPageState extends State<SearchPage> {
       query = query.where('price', isLessThanOrEqualTo: maxPrice);
     }
 
+    if (_selectedSortOption != null) {
+      switch (_selectedSortOption) {
+        case 'Order by price ascending':
+          query = query.orderBy('price', descending: false);
+          break;
+        case 'Order by price descending':
+          query = query.orderBy('price', descending: true);
+          break;
+        case 'Order by year ascending':
+          query = query.orderBy('year', descending: false);
+          break;
+        case 'Order by year descending':
+          query = query.orderBy('year', descending: true);
+          break;
+      }
+    }
+
     return query.snapshots();
   }
 
@@ -130,6 +168,7 @@ class _SearchPageState extends State<SearchPage> {
       _selectedVehicleType = null;
       _selectedCategory = null;
       _selectedBrand = null;
+      _selectedSortOption = null;
     });
   }
 
@@ -303,6 +342,35 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
+                      child: IntrinsicWidth(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedSortOption,
+                          decoration: InputDecoration(
+                            labelText: 'Sort by',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                            ),
+                          ),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedSortOption = newValue;
+                            });
+                          },
+                          items: sortOptions.map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: SizedBox(
                         width: 100,
                         height: 55,
@@ -321,7 +389,7 @@ class _SearchPageState extends State<SearchPage> {
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 16,
-                              fontWeight: FontWeight.bold, 
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -339,7 +407,7 @@ class _SearchPageState extends State<SearchPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            elevation: 3, 
+                            elevation: 3,
                             shadowColor: Colors.black.withOpacity(0.5),
                           ),
                           child: Text(
