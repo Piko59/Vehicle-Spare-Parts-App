@@ -137,7 +137,6 @@ class _AddPartPageState extends State<AddPartPage> {
         'image_url': imageUrl,
         'vehicle_type': _selectedVehicleType,
         'category': _selectedCategory,
-        'partCategory': _selectedPartCategory,
         'brand': _selectedBrand,
         'title': _titleController.text,
         'year': int.parse(_yearController.text),

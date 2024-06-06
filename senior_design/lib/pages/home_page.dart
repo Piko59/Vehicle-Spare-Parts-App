@@ -6,6 +6,7 @@ import 'business_list_page.dart';
 import 'fullscreen_page.dart';
 import 'business_details_page.dart';
 import 'category_page.dart';
+import 'search_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -67,6 +68,14 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                               ),
                               onChanged: (value) {
+                              },
+                              onSubmitted: (value) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SearchPage(),
+                                  )
+                                );
                               },
                             ),
                           ),

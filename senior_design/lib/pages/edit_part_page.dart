@@ -25,7 +25,6 @@ class _EditPartPageState extends State<EditPartPage> {
   String? _selectedVehicleType;
   String? _selectedCategory;
   String? _selectedBrand;
-  String? _selectedPartCategory;
   bool _isNew = true;
   File? _image;
   final picker = ImagePicker();
@@ -115,7 +114,6 @@ class _EditPartPageState extends State<EditPartPage> {
           _selectedVehicleType = _productData!['vehicle_type'];
           _selectedCategory = _productData!['category'];
           _selectedBrand = _productData!['brand'];
-          _selectedPartCategory = _productData!['partCategory'];
           _isNew = _productData!['isNew'] ?? true;
           _imageUrl = _productData!['image_url'];
         });
@@ -189,7 +187,6 @@ class _EditPartPageState extends State<EditPartPage> {
         'year': int.parse(_yearController.text),
         'vehicle_type': _selectedVehicleType,
         'category': _selectedCategory,
-        'partCategory': _selectedPartCategory,
         'brand': _selectedBrand,
         'isNew': _isNew,
         'image_url': _imageUrl,
@@ -292,7 +289,6 @@ class _EditPartPageState extends State<EditPartPage> {
                     onChanged: (String? newValue) {
                       setState(() {
                         _selectedCategory = newValue;
-                        _selectedPartCategory = newValue;
                       });
                     },
                     items: (_selectedVehicleType != null
