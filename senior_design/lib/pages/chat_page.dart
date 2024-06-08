@@ -7,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-
+import 'business_details_page.dart';
 import 'other_user_profile_page.dart';
 
 class ChatPage extends StatefulWidget {
@@ -267,6 +267,35 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     });
   }
 
+void navigateToProfile(BuildContext context, String userId) {
+  DatabaseReference userRef = FirebaseDatabase.instance.ref().child('users').child(userId);
+
+  userRef.get().then((DataSnapshot snapshot) {
+    if (snapshot.exists) {
+      var profileType = snapshot.child('profileType').value;
+      if (profileType == 'business') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BusinessDetailsPage(businessUid: userId),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OtherUserProfilePage(userId: userId),
+          ),
+        );
+      }
+    } else {
+      print('User does not exist');
+    }
+  }).catchError((error) {
+    print('Failed to retrieve user data: $error');
+  });
+}
+
   Widget _buildMessage(Map<String, dynamic> message) {
     if (message['text'] != null) {
       return Text(
@@ -312,12 +341,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         flexibleSpace: InkWell(
           onTap: () {
             if (otherUserId != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OtherUserProfilePage(userId: otherUserId!),
-                ),
-              );
+              navigateToProfile(context, otherUserId!);
             }
           },
           child: Container(
@@ -336,16 +360,6 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
         toolbarHeight: 65,
         leadingWidth: 300,
         leading: GestureDetector(
-          onTap: () {
-            if (otherUserId != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OtherUserProfilePage(userId: otherUserId!),
-                ),
-              );
-            }
-          },
           child: Row(
             children: [
               IconButton(
@@ -391,12 +405,7 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
               GestureDetector(
                 onTap: () {
                   if (otherUserId != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OtherUserProfilePage(userId: otherUserId!),
-                      ),
-                    );
+                    navigateToProfile(context, otherUserId!);
                   }
                 },
                 child: Column(

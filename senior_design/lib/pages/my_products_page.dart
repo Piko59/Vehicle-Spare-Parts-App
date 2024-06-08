@@ -79,7 +79,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Product'),
+          title: Text('Delete Product', style: TextStyle(color: Colors.red)),
           content: Text('Are you sure you want to delete this product?'),
           actions: <Widget>[
             TextButton(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'part_details_screen.dart';
+import 'part_detail_page.dart';
 
 class OtherUserProductsPage extends StatefulWidget {
   final String userId;
@@ -123,7 +123,7 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PartDetailScreen(
+                        builder: (context) => PartDetailPage(
                           title: product['title'],
                           imageUrl: product['image_url'],
                           description: product['description'],

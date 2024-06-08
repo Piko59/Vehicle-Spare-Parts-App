@@ -15,6 +15,7 @@ class _MainPageState extends State<MainPage> {
 
   void _onItemTapped(int index) {
     if (index != 2) {
+      FocusScope.of(context).unfocus(); // Klavyeyi kapat
       setState(() {
         _selectedIndex = index;
       });
@@ -22,6 +23,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   Future<void> _onFabPressed() async {
+    FocusScope.of(context).unfocus(); // Klavyeyi kapat
     bool result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddPartPage()),

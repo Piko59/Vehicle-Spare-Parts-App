@@ -23,7 +23,6 @@ class _AddPartPageState extends State<AddPartPage> {
   String? _selectedVehicleType;
   String? _selectedCategory;
   String? _selectedBrand;
-  String? _selectedPartCategory;
 
   bool _isLoading = false;
 
@@ -268,7 +267,6 @@ class _AddPartPageState extends State<AddPartPage> {
                 onChanged: (String? newValue) {
                   setState(() {
                     _selectedCategory = newValue;
-                    _selectedPartCategory = newValue;
                   });
                 },
                 items: (_selectedVehicleType != null

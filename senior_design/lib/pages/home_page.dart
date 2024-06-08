@@ -7,6 +7,7 @@ import 'fullscreen_page.dart';
 import 'business_details_page.dart';
 import 'category_page.dart';
 import 'search_page.dart';
+import 'all_businesses_page.dart'; // Yeni sayfa import edildi
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -272,41 +273,40 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   }
 
   void _navigateToCategoryPage(String categoryType) {
-  List<String> categories;
-  switch (categoryType) {
-    case 'Car':
-      categories = [
-        'Ignition & Fuel', 'Exhaust', 'Electrical', 'Filter', 'Brake & Clutch', 'Heating & Ventilation & Air Conditioning',
-        'Mechanical', 'Engine', 'Transmission & Gear', 'Suspension & Steering',
-      ];
-      break;
-    case 'Motorcycle':
-      categories = [
-        'Clutch', 'Exhaust', 'Electrical', 'Brake', 'Fairing', 'Ventilation', 'Engine',
-        'Suspension', 'Transmission', 'Lubrication', 'Fuel System', 'Steering',
-      ];
-      break;
-    case 'Bicycle':
-      categories = [
-        'Handlebar', 'Brake', 'Rotor', 'Bearing', 'Rim', 'Frame', 'Drivetrain Components',
-        'Electric Components', 'Cockpit', 'Brake Pad',
-      ];
-      break;
-    default:
-      categories = [];
-  }
+    List<String> categories;
+    switch (categoryType) {
+      case 'Car':
+        categories = [
+          'Ignition & Fuel', 'Exhaust', 'Electrical', 'Filter', 'Brake & Clutch', 'Heating & Ventilation & Air Conditioning',
+          'Mechanical', 'Engine', 'Transmission & Gear', 'Suspension & Steering',
+        ];
+        break;
+      case 'Motorcycle':
+        categories = [
+          'Clutch', 'Exhaust', 'Electrical', 'Brake', 'Fairing', 'Ventilation', 'Engine',
+          'Suspension', 'Transmission', 'Lubrication', 'Fuel System', 'Steering',
+        ];
+        break;
+      case 'Bicycle':
+        categories = [
+          'Handlebar', 'Brake', 'Rotor', 'Bearing', 'Rim', 'Frame', 'Drivetrain Components',
+          'Electric Components', 'Cockpit', 'Brake Pad',
+        ];
+        break;
+      default:
+        categories = [];
+    }
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => CategoryPage(
-        categoryType: categoryType,
-        categories: categories,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryPage(
+          categoryType: categoryType,
+          categories: categories,
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }
 
 class PopularStores extends StatefulWidget {
@@ -368,6 +368,10 @@ class _PopularStoresState extends State<PopularStores> {
           }
         }
 
+        // Rating'e göre sıralama ve ilk 5 mağazayı alma
+        stores.sort((a, b) => b['rating'].compareTo(a['rating']));
+        stores = stores.take(5).toList();
+
         setState(() {
           _stores = stores;
           debugPrint('Stores list updated: $_stores');
@@ -393,7 +397,12 @@ class _PopularStoresState extends State<PopularStores> {
               const Text('Popular Stores',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AllBusinessesPage()),
+                  );
+                },
                 child: const Text('See All', style: TextStyle(color: Colors.blue)),
               ),
             ],
@@ -500,6 +509,7 @@ class StoreTile extends StatelessWidget {
     );
   }
 }
+
 
 class VehiclePartIcons extends StatelessWidget {
   final Function(String) onCategorySelected;

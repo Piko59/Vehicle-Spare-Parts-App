@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'part_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
   final String? initialVehicleType;
@@ -14,6 +15,8 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   TextEditingController _minPriceController = TextEditingController();
   TextEditingController _maxPriceController = TextEditingController();
+  FocusNode _minPriceFocusNode = FocusNode();
+  FocusNode _maxPriceFocusNode = FocusNode();
 
   String? _selectedVehicleType;
   String? _selectedCategory;
@@ -105,6 +108,8 @@ class _SearchPageState extends State<SearchPage> {
   void dispose() {
     _minPriceController.dispose();
     _maxPriceController.dispose();
+    _minPriceFocusNode.dispose();
+    _maxPriceFocusNode.dispose();
     super.dispose();
   }
 
@@ -156,7 +161,7 @@ class _SearchPageState extends State<SearchPage> {
   void _applyFilters() {
     FocusScope.of(context).unfocus();
     setState(() {
-      // Destroying the keyboard is enough for the filtering process to occur.
+      // Filtering işlemi burada yapılır.
     });
   }
 
@@ -304,19 +309,33 @@ class _SearchPageState extends State<SearchPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
                         width: 100,
-                        child: TextField(
-                          controller: _minPriceController,
-                          decoration: InputDecoration(
-                            labelText: 'Min Price',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                        child: GestureDetector(
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(_minPriceFocusNode);
+                          },
+                          child: AbsorbPointer(
+                            child: TextField(
+                              controller: _minPriceController,
+                              focusNode: _minPriceFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'Min Price',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                                ),
+                              ),
+                              keyboardType: TextInputType.number,
+                              onEditingComplete: () {
+                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                              },
+                              onSubmitted: (value) {
+                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                              },
                             ),
                           ),
-                          keyboardType: TextInputType.number,
                         ),
                       ),
                     ),
@@ -324,19 +343,33 @@ class _SearchPageState extends State<SearchPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
                         width: 100,
-                        child: TextField(
-                          controller: _maxPriceController,
-                          decoration: InputDecoration(
-                            labelText: 'Max Price',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                        child: GestureDetector(
+                          onTap: () {
+                            FocusScope.of(context).requestFocus(_maxPriceFocusNode);
+                          },
+                          child: AbsorbPointer(
+                            child: TextField(
+                              controller: _maxPriceController,
+                              focusNode: _maxPriceFocusNode,
+                              decoration: InputDecoration(
+                                labelText: 'Max Price',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(color: Color(0xFFA3D8FF), width: 2),
+                                ),
+                              ),
+                              keyboardType: TextInputType.number,
+                              onEditingComplete: () {
+                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                              },
+                              onSubmitted: (value) {
+                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                              },
                             ),
                           ),
-                          keyboardType: TextInputType.number,
                         ),
                       ),
                     ),
@@ -441,6 +474,23 @@ class _SearchPageState extends State<SearchPage> {
                           subtitle: Text(part['description']),
                           leading: Image.network(part['image_url'], width: 50, height: 50),
                           trailing: Text("\$${part['price'].toStringAsFixed(2)}"),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PartDetailPage(
+                                  title: part['title'],
+                                  imageUrl: part['image_url'],
+                                  description: part['description'],
+                                  price: part['price'],
+                                  brand: part['brand'],
+                                  isNew: part['isNew'],
+                                  year: part['year'],
+                                  userId: part['user_id'],
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     );

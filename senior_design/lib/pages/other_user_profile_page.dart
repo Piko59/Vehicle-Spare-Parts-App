@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-
 import 'other_user_products_page.dart';
-import 'other_user_comments_page.dart';
 
 class OtherUserProfilePage extends StatefulWidget {
   final String userId;
@@ -19,7 +17,7 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
   int productCount = 0;
   int commentCount = 0;
 
-  final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
 
   @override
   void initState() {
@@ -60,7 +58,7 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
 
   Future<void> _loadCommentCount() async {
     try {
-      final DatabaseEvent event = await _databaseRef.child('users/${widget.userId}/receivedRatingsAndComments').once();
+      final DatabaseEvent event = await _databaseRef.child('users/${widget.userId}/givenRatingsAndComments').once();
       final DataSnapshot snapshot = event.snapshot;
       if (snapshot.value != null) {
         setState(() {
@@ -229,32 +227,48 @@ class _OtherUserProfilePageState extends State<OtherUserProfilePage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 420.0),
+              padding: const EdgeInsets.only(top: 410.0),
               child: Column(
                 children: [
-                  ListTile(
-                    leading: Icon(Icons.shopping_bag),
-                    title: Text('Products'),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OtherUserProductsPage(userId: widget.userId),
+                  Center(
+                    child: Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFFFF76CE),
+                            Color(0xFFA3D8FF),
+                          ],
+                          begin: Alignment.bottomLeft,
+                          end: Alignment.topRight,
                         ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.comment),
-                    title: Text('Comments'),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OtherUserCommentsPage(userId: widget.userId),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OtherUserProductsPage(userId: widget.userId),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          textStyle: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      );
-                    },
+                        child: Text(
+                          'Products',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

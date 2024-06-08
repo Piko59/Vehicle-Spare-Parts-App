@@ -3,70 +3,56 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-class AddCommentPage extends StatefulWidget {
-  final String businessUid;
+class EditCommentPage extends StatefulWidget {
+  final String commentId;
+  final String businessId;
 
-  AddCommentPage({required this.businessUid});
+  EditCommentPage({required this.commentId, required this.businessId});
 
   @override
-  _AddCommentPageState createState() => _AddCommentPageState();
+  _EditCommentPageState createState() => _EditCommentPageState();
 }
 
-class _AddCommentPageState extends State<AddCommentPage> {
+class _EditCommentPageState extends State<EditCommentPage> {
   double _rating = 0.0;
-  String _comment = '';
+  final TextEditingController _commentController = TextEditingController();
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
-  bool _isSubmitting = false; // Button submission state
 
-  void _submitComment() async {
-    setState(() {
-      _isSubmitting = true; // Disable button
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadCommentData();
+  }
 
-    String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    int timestamp = DateTime.now().millisecondsSinceEpoch;
+  void _loadCommentData() async {
+    DataSnapshot snapshot = await _databaseRef.child('Comments').child(widget.commentId).get();
+    if (snapshot.exists) {
+      Map<dynamic, dynamic> commentData = snapshot.value as Map<dynamic, dynamic>;
+      setState(() {
+        _rating = (commentData['rating'] as num).toDouble();
+        _commentController.text = commentData['comment'] as String? ?? '';
+      });
+    }
+  }
 
+  void _submitEdit() async {
     try {
-      DatabaseReference newCommentRef = _databaseRef.child('Comments').push();
-      String commentId = newCommentRef.key ?? '';
-
-      await newCommentRef.set({
+      await _databaseRef.child('Comments').child(widget.commentId).update({
         'rating': _rating,
-        'comment': _comment,
-        'userId': currentUserId,
-        'businessId': widget.businessUid,
-        'timestamp': timestamp,
+        'comment': _commentController.text,
       });
 
-      await _databaseRef
-          .child('users')
-          .child(widget.businessUid)
-          .child('receivedComments')
-          .child(commentId)
-          .set(true);
-
-      await _databaseRef
-          .child('users')
-          .child(currentUserId)
-          .child('givenComments')
-          .child(commentId)
-          .set(true);
-
-      DatabaseReference userRef =
-          _databaseRef.child('users').child(widget.businessUid);
-      DataSnapshot snapshot =
-          await userRef.child('receivedComments').get();
+      DatabaseReference userRef = _databaseRef.child('users').child(widget.businessId);
+      DataSnapshot snapshot = await userRef.child('receivedComments').get();
       double totalRating = 0.0;
       int ratingCount = 0;
 
       if (snapshot.exists) {
         Map<dynamic, dynamic> commentIds = snapshot.value as Map<dynamic, dynamic>;
         for (var entry in commentIds.entries) {
-          DataSnapshot commentSnapshot =
-              await _databaseRef.child('Comments').child(entry.key).get();
+          DataSnapshot commentSnapshot = await _databaseRef.child('Comments').child(entry.key).get();
           if (commentSnapshot.exists) {
-            Map<dynamic, dynamic> commentData =
-                commentSnapshot.value as Map<dynamic, dynamic>;
+            Map<dynamic, dynamic> commentData = commentSnapshot.value as Map<dynamic, dynamic>;
             totalRating += commentData['rating'];
             ratingCount += 1;
           }
@@ -78,21 +64,13 @@ class _AddCommentPageState extends State<AddCommentPage> {
       await userRef.update({'averageRating': averageRating});
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Comment added successfully!'),
-        ),
+        SnackBar(content: Text('Comment updated successfully!')),
       );
       Navigator.pop(context, true);
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to add comment: $error'),
-        ),
+        SnackBar(content: Text('Failed to update comment: $error')),
       );
-    } finally {
-      setState(() {
-        _isSubmitting = false; // Re-enable button
-      });
     }
   }
 
@@ -113,7 +91,7 @@ class _AddCommentPageState extends State<AddCommentPage> {
           ),
         ),
         title: Text(
-          'Add Comment',
+          'Edit Comment',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -155,9 +133,10 @@ class _AddCommentPageState extends State<AddCommentPage> {
               ),
               SizedBox(height: 16),
               TextField(
+                controller: _commentController,
                 onChanged: (value) {
                   setState(() {
-                    _comment = value;
+                    _commentController.text = value;
                   });
                 },
                 maxLines: 3,
@@ -174,7 +153,7 @@ class _AddCommentPageState extends State<AddCommentPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitComment, // Disable button when submitting
+                  onPressed: _submitEdit,
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 0),
                     textStyle: TextStyle(
@@ -187,13 +166,11 @@ class _AddCommentPageState extends State<AddCommentPage> {
                   ),
                   child: Ink(
                     decoration: BoxDecoration(
-                      gradient: _isSubmitting
-                          ? null
-                          : LinearGradient(
-                              colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Container(
@@ -203,7 +180,7 @@ class _AddCommentPageState extends State<AddCommentPage> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        _isSubmitting ? 'Submitting...' : 'Submit',
+                        'Submit',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),

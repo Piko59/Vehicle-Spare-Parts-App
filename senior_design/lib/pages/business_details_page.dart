@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'other_user_products_page.dart';
-import 'other_user_comments_page.dart';
+import 'business_comments_page.dart';
 
 class BusinessDetailsPage extends StatefulWidget {
   final String businessUid;
@@ -309,7 +309,7 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
                             final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => OtherUserCommentsPage(userId: widget.businessUid),
+                                builder: (context) => BusinessCommentsPage(businessUid: widget.businessUid),
                               ),
                             );
                             if (result == true) {

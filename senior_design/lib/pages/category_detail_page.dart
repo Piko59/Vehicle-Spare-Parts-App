@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:senior_design/pages/part_details_screen.dart';
+import 'package:senior_design/pages/part_detail_page.dart';
 
 class CategoryDetailPage extends StatelessWidget {
   final String category;
@@ -77,7 +77,7 @@ class CategoryDetailPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PartDetailScreen(
+                      builder: (context) => PartDetailPage(
                         title: part['title'],
                         imageUrl: part['image_url'],
                         description: part['description'],
