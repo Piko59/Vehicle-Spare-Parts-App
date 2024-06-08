@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'business_list_page.dart';
+import 'category_business_page.dart';
 import 'fullscreen_page.dart';
 import 'business_details_page.dart';
 import 'category_page.dart';
@@ -172,19 +172,36 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Emergency Categories'),
+          title: Text(
+            'Emergency Categories',
+            style: TextStyle(
+              fontSize: 24, // Başlık metnini büyük yap
+              fontWeight: FontWeight.bold,
+              color: Colors.red, // Kırmızı renk kullan
+            ),
+          ),
           content: SingleChildScrollView(
             child: Column(
               children: List.generate(
                 businessCategories.length,
                 (index) => ListTile(
-                  title: Text(businessCategories[index]),
+                  title: Text(
+                    businessCategories[index],
+                    style: TextStyle(
+                      color: Colors.red, // Kırmızı renk kullan
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.arrow_forward, // Gitme ikonu
+                    color: Colors.red, // Renk
+                  ),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => BusinessListPage(
+                        builder: (context) => CategoryBusinessesPage (
                           category: businessCategories[index],
                         ),
                       ),
@@ -195,11 +212,20 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             ),
           ),
           actions: <Widget>[
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Close'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Kırmızı renk kullan
+              ),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         );

@@ -465,15 +465,17 @@ class _SearchPageState extends State<SearchPage> {
                       return Center(child: CircularProgressIndicator());
                     }
                     final parts = snapshot.data!.docs;
-                    return ListView.builder(
+                    return GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        childAspectRatio: 2 / 3,
+                      ),
                       itemCount: parts.length,
                       itemBuilder: (context, index) {
                         final part = parts[index];
-                        return ListTile(
-                          title: Text(part['title']),
-                          subtitle: Text(part['description']),
-                          leading: Image.network(part['image_url'], width: 50, height: 50),
-                          trailing: Text("\$${part['price'].toStringAsFixed(2)}"),
+                        return InkWell(
                           onTap: () {
                             Navigator.push(
                               context,
@@ -491,6 +493,51 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                             );
                           },
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.topCenter,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                                  child: Image.network(
+                                    part['image_url'],
+                                    fit: BoxFit.cover,
+                                    height: MediaQuery.of(context).size.width / 2,
+                                    width: MediaQuery.of(context).size.width / 2,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: MediaQuery.of(context).size.width / 2 + 8.0, 
+                                  left: 0,
+                                  right: 0,
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      part['title'],
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 8.0,
+                                  right: 8.0,
+                                  child: Text(
+                                    "\$${part['price'].toStringAsFixed(2)}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         );
                       },
                     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'chat_page.dart';
+import 'business_details_page.dart';
 
 class PartDetailPage extends StatefulWidget {
   final String title;
@@ -107,7 +108,7 @@ class _PartDetailPageState extends State<PartDetailPage> {
     });
 
     await FirebaseDatabase.instance.ref('users/$currentUserId/conversations/$newConversationId').set(true);
-    await FirebaseDatabase.instance.ref('users/$widget.userId/conversations/$newConversationId').set(true);
+    await FirebaseDatabase.instance.ref('users/${widget.userId}/conversations/$newConversationId').set(true);
 
     Navigator.push(
       context,
@@ -119,8 +120,9 @@ class _PartDetailPageState extends State<PartDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
-          'Part Details',
+          'Part Detail',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -141,103 +143,156 @@ class _PartDetailPageState extends State<PartDetailPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(20.0),
-              child: Image.network(
-                widget.imageUrl,
-                height: 200,
-                width: 200,
-                fit: BoxFit.cover,
-              ),
-            ),
-            SizedBox(height: 10),
-            Center(
-              child: Text(
-                widget.title,
-                style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              widget.description,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Price:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text(widget.price.toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Brand:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text(widget.brand, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Is New:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text(widget.isNew.toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Year:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text(widget.year.toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Owner:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text(userName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFFFF76CE),
-                    Color(0xFFA3D8FF),
-                  ],
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.topRight,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: InkWell(
-                onTap: handleSendMessage,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15.0),
-                  child: Center(
-                    child: Text(
-                      'Send Message',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    child: Image.network(
+                      widget.imageUrl,
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.width,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    top: 15,
+                    right: 15,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        '\$${widget.price.toString()}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
+                ],
+              ),
+            ],
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.width - 15,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height - MediaQuery.of(context).size.width,
+              padding: EdgeInsets.all(15.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  topRight: Radius.circular(20.0),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    widget.description,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(widget.brand, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(widget.isNew ? 'New' : 'Secondhand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(widget.year.toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+floatingActionButton: Stack(
+  children: [
+    Positioned(
+      bottom: 16,
+      left: 36,
+      child: Container(
+        width: 60,
+        height: 60,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => BusinessDetailsPage(businessUid: widget.userId)),
+            );
+          },
+          child: Icon(Icons.person, color: Colors.white),
+          backgroundColor: Colors.transparent, // Set to transparent to show gradient
+          elevation: 0, // Remove shadow
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+          ),
         ),
       ),
+    ),
+    Positioned(
+      bottom: 16,
+      right: 16,
+      child: Container(
+        width: 60,
+        height: 60,
+        child: FloatingActionButton(
+          onPressed: handleSendMessage,
+          child: Icon(Icons.message, color: Colors.white),
+          backgroundColor: Colors.transparent, // Set to transparent to show gradient
+          elevation: 0, // Remove shadow
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+          ),
+        ),
+      ),
+    ),
+  ],
+),
+
     );
   }
 }

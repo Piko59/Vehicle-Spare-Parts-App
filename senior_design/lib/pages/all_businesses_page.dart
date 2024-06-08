@@ -52,7 +52,6 @@ class _AllBusinessesPageState extends State<AllBusinessesPage> {
           }
         }
 
-        // Sort stores by average rating in descending order
         stores.sort((a, b) => b['rating'].compareTo(a['rating']));
 
         setState(() {
@@ -82,30 +81,29 @@ class _AllBusinessesPageState extends State<AllBusinessesPage> {
               ),
             ),
           ),
-          title: Text('All Businesses',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: Text(
+            'All Businesses',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
           centerTitle: true,
           backgroundColor: Colors.transparent,
           iconTheme: IconThemeData(color: Colors.white),
         ),
       ),
       body: Container(
+        padding: EdgeInsets.all(8.0),
         child: _stores.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.builder(
+            ? Center(child: CircularProgressIndicator())
+            : GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8.0,
+                  crossAxisSpacing: 8.0,
+                  childAspectRatio: 0.7,
+                ),
                 itemCount: _stores.length,
                 itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Image.network(_stores[index]['imageUrl'], width: 50, height: 50),
-                    title: Text(_stores[index]['name']),
-                    subtitle: Text(_stores[index]['businessCategory']),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber),
-                        Text(_stores[index]['rating'].toStringAsFixed(1)),
-                      ],
-                    ),
+                  return GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
@@ -116,6 +114,73 @@ class _AllBusinessesPageState extends State<AllBusinessesPage> {
                         ),
                       );
                     },
+                    child: Card(
+                      elevation: 2.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Stack(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
+                                child: Image.network(
+                                  _stores[index]['imageUrl'],
+                                  height: MediaQuery.of(context).size.width / 2,
+                                  width: MediaQuery.of(context).size.width / 2,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _stores[index]['name'],
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(height: 4.0),
+                                    Text(
+                                      _stores[index]['businessCategory'],
+                                      style: TextStyle(color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            top: 8.0,
+                            right: 8.0,
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.star, color: Colors.amber, size: 16.0),
+                                  SizedBox(width: 4.0),
+                                  Text(
+                                    _stores[index]['rating'].toStringAsFixed(1),
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),
