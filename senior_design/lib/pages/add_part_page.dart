@@ -33,7 +33,6 @@ class _AddPartPageState extends State<AddPartPage> {
       'Electric',
       'Filter',
       'Brake & Clutch',
-      'Heating & Ventilation & Air Conditioning',
       'Mechanical',
       'Engine',
       'Transmission & Gear',

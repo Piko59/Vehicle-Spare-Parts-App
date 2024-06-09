@@ -31,6 +31,7 @@ class PartDetailPage extends StatefulWidget {
 
 class _PartDetailPageState extends State<PartDetailPage> {
   String userName = '';
+  int selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -179,120 +180,160 @@ class _PartDetailPageState extends State<PartDetailPage> {
               ),
             ],
           ),
-          Positioned(
-            top: MediaQuery.of(context).size.width - 15,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height - MediaQuery.of(context).size.width,
-              padding: EdgeInsets.all(15.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20.0),
-                  topRight: Radius.circular(20.0),
+          DraggableScrollableSheet(
+            initialChildSize: 0.5,
+            minChildSize: 0.5,
+            maxChildSize: 1.0,
+            builder: (BuildContext context, ScrollController scrollController) {
+              return Container(
+                padding: EdgeInsets.all(15.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20.0),
+                    topRight: Radius.circular(20.0),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    widget.description,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.left,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(widget.brand, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Center(
+                        child: Container(
+                          width: 50,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2.5),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Center(
+                        child: Text(
+                          widget.title,
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedTabIndex = 0;
+                              });
+                            },
+                            child: Text(
+                              'Part Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: selectedTabIndex == 0 ? Colors.blue : Colors.grey,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedTabIndex = 1;
+                              });
+                            },
+                            child: Text(
+                              'Description',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: selectedTabIndex == 1 ? Colors.blue : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Divider(),
+                      selectedTabIndex == 0
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Brand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    Text(widget.brand, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                Divider(),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Status', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    Text(widget.isNew ? 'New' : 'Secondhand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                                Divider(),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Year', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    Text(widget.year.toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                widget.description,
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ),
                     ],
                   ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Text(widget.isNew ? 'New' : 'Secondhand', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Text(widget.year.toString(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(left: 16, bottom: 16),
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BusinessDetailsPage(businessUid: widget.userId)),
+                );
+              },
+              child: Icon(Icons.person, color: Colors.white),
+              backgroundColor: Color(0xFFFF76CE),
+              heroTag: 'personFab',
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: 16, bottom: 16),
+            child: FloatingActionButton(
+              onPressed: handleSendMessage,
+              child: Icon(Icons.chat, color: Colors.white),
+              backgroundColor: Color(0xFFFF76CE),
+              heroTag: 'chatFab',
             ),
           ),
         ],
       ),
-floatingActionButton: Stack(
-  children: [
-    Positioned(
-      bottom: 16,
-      left: 36,
-      child: Container(
-        width: 60,
-        height: 60,
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => BusinessDetailsPage(businessUid: widget.userId)),
-            );
-          },
-          child: Icon(Icons.person, color: Colors.white),
-          backgroundColor: Colors.transparent, // Set to transparent to show gradient
-          elevation: 0, // Remove shadow
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
-            begin: Alignment.bottomLeft,
-            end: Alignment.topRight,
-          ),
-        ),
-      ),
-    ),
-    Positioned(
-      bottom: 16,
-      right: 16,
-      child: Container(
-        width: 60,
-        height: 60,
-        child: FloatingActionButton(
-          onPressed: handleSendMessage,
-          child: Icon(Icons.message, color: Colors.white),
-          backgroundColor: Colors.transparent, // Set to transparent to show gradient
-          elevation: 0, // Remove shadow
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
-            begin: Alignment.bottomLeft,
-            end: Alignment.topRight,
-          ),
-        ),
-      ),
-    ),
-  ],
-),
-
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

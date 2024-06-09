@@ -14,7 +14,7 @@ class OtherUserProductsPage extends StatefulWidget {
 
 class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
   List<Map<String, dynamic>> _products = [];
   List<String> _productIds = [];
 
@@ -83,42 +83,17 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
                 ),
               ),
             )
-          : ListView.builder(
+          : GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+                childAspectRatio: 0.65,
+              ),
               itemCount: _products.length,
               itemBuilder: (context, index) {
                 final product = _products[index];
-                return ListTile(
-                  leading: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: product['image_url'] != null
-                        ? Image.network(
-                            product['image_url'],
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.broken_image);
-                            },
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                          )
-                        : Icon(Icons.image),
-                  ),
-                  title: Text(product['title'] ?? 'No Title'),
-                  subtitle: Text('Price: \$${product['price']?.toStringAsFixed(2) ?? 'N/A'}'),
+                return InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
@@ -136,6 +111,62 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
                       ),
                     );
                   },
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                          child: Image.network(
+                            product['image_url'],
+                            fit: BoxFit.cover,
+                            height: MediaQuery.of(context).size.width / 2,
+                            width: MediaQuery.of(context).size.width / 2,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(Icons.broken_image);
+                            },
+                            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text(
+                            product['title'],
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Spacer(), // Boş alan bırakmak için kullanılır
+                        Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: Text(
+                              "\$${product['price'].toStringAsFixed(2)}",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),

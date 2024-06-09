@@ -31,7 +31,6 @@ class _SearchPageState extends State<SearchPage> {
       'Electric',
       'Filter',
       'Brake & Clutch',
-      'Heating & Ventilation & Air Conditioning',
       'Mechanical',
       'Engine',
       'Transmission & Gear',
@@ -329,10 +328,10 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                               keyboardType: TextInputType.number,
                               onEditingComplete: () {
-                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                                FocusScope.of(context).unfocus();
                               },
                               onSubmitted: (value) {
-                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                                FocusScope.of(context).unfocus();
                               },
                             ),
                           ),
@@ -470,7 +469,7 @@ class _SearchPageState extends State<SearchPage> {
                         crossAxisCount: 2,
                         crossAxisSpacing: 8.0,
                         mainAxisSpacing: 8.0,
-                        childAspectRatio: 2 / 3,
+                        childAspectRatio: 0.65,
                       ),
                       itemCount: parts.length,
                       itemBuilder: (context, index) {
@@ -494,50 +493,47 @@ class _SearchPageState extends State<SearchPage> {
                             );
                           },
                           child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Stack(
-                              alignment: Alignment.topCenter,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-                                  child: Image.network(
-                                    part['image_url'],
-                                    fit: BoxFit.cover,
-                                    height: MediaQuery.of(context).size.width / 2,
-                                    width: MediaQuery.of(context).size.width / 2,
-                                  ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                Positioned(
-                                  top: MediaQuery.of(context).size.width / 2 + 8.0, 
-                                  left: 0,
-                                  right: 0,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(
-                                      part['title'],
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                child: Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                                      child: Image.network(
+                                        part['image_url'],
+                                        fit: BoxFit.cover,
+                                        height: MediaQuery.of(context).size.width / 2,
+                                        width: MediaQuery.of(context).size.width / 2,
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 8.0,
-                                  right: 8.0,
-                                  child: Text(
-                                    "\$${part['price'].toStringAsFixed(2)}",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
+                                    Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Text(
+                                        part['title'],
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
+                                    Spacer(), // Boş alan bırakmak için kullanılır
+                                    Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: Text(
+                                          "\$${part['price'].toStringAsFixed(2)}",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
                         );
                       },
                     );

@@ -13,7 +13,7 @@ class MyProductsPage extends StatefulWidget {
 class _MyProductsPageState extends State<MyProductsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final DatabaseReference _databaseRef = FirebaseDatabase.instance.reference();
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
   final FirebaseStorage _storage = FirebaseStorage.instance;
   late User _user;
   List<Map<String, dynamic>> _products = [];
@@ -147,60 +147,97 @@ class _MyProductsPageState extends State<MyProductsPage> {
                 ),
               ),
             )
-          : ListView.builder(
+          : GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+                childAspectRatio: 0.65,
+              ),
               itemCount: _products.length,
               itemBuilder: (context, index) {
                 final product = _products[index];
                 final productId = product['id'];
-                return ListTile(
-                  leading: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: product['image_url'] != null
-                        ? Image.network(
-                            product['image_url'],
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(Icons.broken_image);
-                            },
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
+                return Stack(
+                  children: [
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                            child: Image.network(
+                              product['image_url'],
+                              fit: BoxFit.cover,
+                              height: MediaQuery.of(context).size.width / 2,
+                              width: MediaQuery.of(context).size.width / 2,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(Icons.broken_image);
+                              },
+                              loadingBuilder: (BuildContext context, Widget child,
+                                  ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              product['title'],
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Spacer(), // Boş alan bırakmak için kullanılır
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Align(
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                "\$${product['price'].toStringAsFixed(2)}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
                                 ),
-                              );
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () {
+                              _editProduct(productId);
                             },
-                          )
-                        : Icon(Icons.image),
-                  ),
-                  title: Text(product['title'] ?? 'No Title'),
-                  subtitle: Text('Price: \$${product['price']?.toStringAsFixed(2) ?? 'N/A'}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          _editProduct(productId);
-                        },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              _deleteProduct(productId);
+                            },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          _deleteProduct(productId);
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               },
             ),

@@ -62,6 +62,13 @@ class _BusinessCommentsPageState extends State<BusinessCommentsPage> {
   }
 
   void _navigateToAddCommentPage() async {
+    if (_currentUser != null && _currentUser!.uid == widget.businessUid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('This business belongs to you')),
+      );
+      return;
+    }
+
     bool hasCommented = await _checkIfUserHasCommented();
     if (!hasCommented) {
       bool result = await Navigator.push(
@@ -247,7 +254,8 @@ class _BusinessCommentsPageState extends State<BusinessCommentsPage> {
                     gradient: LinearGradient(
                       colors: [
                         Color(0xFFFF76CE),
-                        Color(0xFFA3D8FF),
+                        Color(
+                          0xFFA3D8FF),
                       ],
                       begin: Alignment.bottomLeft,
                       end: Alignment.topRight,

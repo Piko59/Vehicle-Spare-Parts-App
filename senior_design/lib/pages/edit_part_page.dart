@@ -37,7 +37,6 @@ class _EditPartPageState extends State<EditPartPage> {
       'Electric',
       'Filter',
       'Brake & Clutch',
-      'Heating & Ventilation & Air Conditioning',
       'Mechanical',
       'Engine',
       'Transmission & Gear',

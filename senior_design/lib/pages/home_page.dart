@@ -303,7 +303,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     switch (categoryType) {
       case 'Car':
         categories = [
-          'Ignition & Fuel', 'Exhaust', 'Electrical', 'Filter', 'Brake & Clutch', 'Heating & Ventilation & Air Conditioning',
+          'Ignition & Fuel', 'Exhaust', 'Electrical', 'Filter', 'Brake & Clutch',
           'Mechanical', 'Engine', 'Transmission & Gear', 'Suspension & Steering',
         ];
         break;

@@ -184,7 +184,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: [
                                                       IconButton(
-                                                        icon: Icon(Icons.edit),
+                                                        icon: Icon(Icons.edit, color: Colors.blue),
                                                         onPressed: () => _editComment(commentId, businessId),
                                                       ),
                                                       IconButton(
