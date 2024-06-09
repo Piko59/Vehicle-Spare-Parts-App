@@ -26,9 +26,9 @@ class _EditPartPageState extends State<EditPartPage> {
   String? _selectedCategory;
   String? _selectedBrand;
   bool _isNew = true;
-  File? _image;
+  List<File> _images = [];
   final picker = ImagePicker();
-  String? _imageUrl;
+  List<String> _imageUrls = [];
 
   final Map<String, List<String>> vehicleCategories = {
     'Car': [
@@ -114,7 +114,7 @@ class _EditPartPageState extends State<EditPartPage> {
           _selectedCategory = _productData!['category'];
           _selectedBrand = _productData!['brand'];
           _isNew = _productData!['isNew'] ?? true;
-          _imageUrl = _productData!['image_url'];
+          _imageUrls = List<String>.from(_productData!['image_urls'] ?? []);
         });
       }
     } catch (e) {
@@ -127,15 +127,15 @@ class _EditPartPageState extends State<EditPartPage> {
 
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path);
+        _images.add(File(pickedFile.path));
       });
     }
   }
 
-  Future<void> _deleteOldImage() async {
-    if (_imageUrl != null) {
+  Future<void> _deleteOldImages() async {
+    for (String imageUrl in _imageUrls) {
       try {
-        final ref = FirebaseStorage.instance.refFromURL(_imageUrl!);
+        final ref = FirebaseStorage.instance.refFromURL(imageUrl);
         await ref.delete();
       } catch (e) {
         print('Error deleting old image: $e');
@@ -143,24 +143,29 @@ class _EditPartPageState extends State<EditPartPage> {
     }
   }
 
-  Future<void> _uploadImage() async {
-    if (_image == null) return;
+  Future<void> _uploadImages() async {
+    if (_images.isEmpty) return;
 
     setState(() {
       _isLoading = true;
     });
 
     try {
-      await _deleteOldImage();
+      await _deleteOldImages();
 
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final storageRef = FirebaseStorage.instance.ref().child('parts/$fileName.jpg');
-      await storageRef.putFile(_image!);
-      _imageUrl = await storageRef.getDownloadURL();
+      List<String> newImageUrls = [];
+      for (File image in _images) {
+        final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+        final storageRef = FirebaseStorage.instance.ref().child('parts/$fileName.jpg');
+        await storageRef.putFile(image);
+        String imageUrl = await storageRef.getDownloadURL();
+        newImageUrls.add(imageUrl);
+      }
+      _imageUrls = newImageUrls;
     } catch (e) {
-      print('Error uploading image: $e');
+      print('Error uploading images: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to upload image: $e'),
+        content: Text('Failed to upload images: $e'),
       ));
     } finally {
       setState(() {
@@ -170,8 +175,8 @@ class _EditPartPageState extends State<EditPartPage> {
   }
 
   Future<void> _saveChanges() async {
-    if (_image != null) {
-      await _uploadImage();
+    if (_images.isNotEmpty) {
+      await _uploadImages();
     }
 
     setState(() {
@@ -188,7 +193,7 @@ class _EditPartPageState extends State<EditPartPage> {
         'category': _selectedCategory,
         'brand': _selectedBrand,
         'isNew': _isNew,
-        'image_url': _imageUrl,
+        'image_urls': _imageUrls,
       });
 
       Navigator.pop(context, true);
@@ -244,11 +249,21 @@ class _EditPartPageState extends State<EditPartPage> {
                         border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: _image == null
-                          ? (_imageUrl != null
-                              ? Image.network(_imageUrl!, fit: BoxFit.cover)
+                      child: _images.isEmpty
+                          ? (_imageUrls.isNotEmpty
+                              ? PageView.builder(
+                                  itemCount: _imageUrls.length,
+                                  itemBuilder: (context, index) {
+                                    return Image.network(_imageUrls[index], fit: BoxFit.cover);
+                                  },
+                                )
                               : Center(child: Text('Choose an Image')))
-                          : Image.file(_image!, fit: BoxFit.cover),
+                          : PageView.builder(
+                              itemCount: _images.length,
+                              itemBuilder: (context, index) {
+                                return Image.file(_images[index], fit: BoxFit.cover);
+                              },
+                            ),
                     ),
                   ),
                   SizedBox(height: 20),

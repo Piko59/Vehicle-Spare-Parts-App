@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:path_provider/path_provider.dart';
 
 class AddPartPage extends StatefulWidget {
   @override
@@ -12,7 +13,7 @@ class AddPartPage extends StatefulWidget {
 }
 
 class _AddPartPageState extends State<AddPartPage> {
-  File? _image;
+  List<File> imageFiles = [];
   final picker = ImagePicker();
   TextEditingController _titleController = TextEditingController();
   TextEditingController _yearController = TextEditingController();
@@ -90,20 +91,25 @@ class _AddPartPageState extends State<AddPartPage> {
     ],
   };
 
-  Future<void> _uploadImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
+  Future<void> _pickImages() async {
+    final pickedFiles = await picker.pickMultiImage();
+    if (pickedFiles != null) {
+      if (pickedFiles.length > 6) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('You can select up to 6 images only.')),
+        );
+        return;
+      }
       setState(() {
-        _image = File(pickedFile.path);
+        imageFiles = pickedFiles.map((pickedFile) => File(pickedFile.path)).toList();
       });
     }
   }
 
   Future<void> _savePart() async {
-    if (_image == null) {
+    if (imageFiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select an image')),
+        SnackBar(content: Text('Please select at least one image')),
       );
       return;
     }
@@ -113,16 +119,22 @@ class _AddPartPageState extends State<AddPartPage> {
     });
 
     try {
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
-          .ref()
-          .child('parts')
-          .child('$fileName.jpg');
+      List<String> imageUrls = [];
 
-      firebase_storage.UploadTask uploadTask = ref.putFile(_image!);
-      firebase_storage.TaskSnapshot taskSnapshot = await uploadTask;
+      for (File file in imageFiles) {
+        final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+        firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
+            .ref()
+            .child('parts')
+            .child('$fileName.jpg');
 
-      final String imageUrl = await taskSnapshot.ref.getDownloadURL();
+        firebase_storage.UploadTask uploadTask = ref.putFile(file);
+        firebase_storage.TaskSnapshot taskSnapshot = await uploadTask;
+
+        final String imageUrl = await taskSnapshot.ref.getDownloadURL();
+        imageUrls.add(imageUrl);
+      }
+
       final User? user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
@@ -132,7 +144,7 @@ class _AddPartPageState extends State<AddPartPage> {
       final Timestamp timestamp = Timestamp.now();
 
       DocumentReference partDocRef = await FirebaseFirestore.instance.collection('parts').add({
-        'image_url': imageUrl,
+        'image_urls': imageUrls,
         'vehicle_type': _selectedVehicleType,
         'category': _selectedCategory,
         'brand': _selectedBrand,
@@ -154,7 +166,7 @@ class _AddPartPageState extends State<AddPartPage> {
       _yearController.clear();
       setState(() {
         _isNew = true;
-        _image = null;
+        imageFiles = [];
         _selectedVehicleType = null;
         _selectedCategory = null;
         _selectedBrand = null;
@@ -199,6 +211,10 @@ class _AddPartPageState extends State<AddPartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text('Add Part',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
@@ -221,7 +237,7 @@ class _AddPartPageState extends State<AddPartPage> {
           child: ListView(
             children: <Widget>[
               GestureDetector(
-                onTap: _uploadImage,
+                onTap: _pickImages,
                 child: Container(
                   height: 200,
                   width: double.infinity,
@@ -229,9 +245,18 @@ class _AddPartPageState extends State<AddPartPage> {
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: _image == null
-                      ? Center(child: Text('Choose an Image'))
-                      : Image.file(_image!),
+                  child: imageFiles.isEmpty
+                      ? Center(child: Text('Choose Images'))
+                      : GridView.count(
+                          crossAxisCount: 3,
+                          children: List.generate(imageFiles.length, (index) {
+                            File file = imageFiles[index];
+                            return Image.file(
+                              file,
+                              fit: BoxFit.cover,
+                            );
+                          }),
+                        ),
                 ),
               ),
               SizedBox(height: 20),

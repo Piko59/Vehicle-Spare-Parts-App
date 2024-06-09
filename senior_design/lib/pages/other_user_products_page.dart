@@ -100,7 +100,7 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
                       MaterialPageRoute(
                         builder: (context) => PartDetailPage(
                           title: product['title'],
-                          imageUrl: product['image_url'],
+                          imageUrls: List<String>.from(product['image_urls']),
                           description: product['description'],
                           price: product['price'],
                           brand: product['brand'],
@@ -120,7 +120,7 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
                         ClipRRect(
                           borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                           child: Image.network(
-                            product['image_url'],
+                            product['image_urls'][0], // İlk fotoğrafı kullan
                             fit: BoxFit.cover,
                             height: MediaQuery.of(context).size.width / 2,
                             width: MediaQuery.of(context).size.width / 2,

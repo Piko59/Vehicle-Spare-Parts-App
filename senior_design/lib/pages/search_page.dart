@@ -481,7 +481,7 @@ class _SearchPageState extends State<SearchPage> {
                               MaterialPageRoute(
                                 builder: (context) => PartDetailPage(
                                   title: part['title'],
-                                  imageUrl: part['image_url'],
+                                  imageUrls: List<String>.from(part['image_urls']),
                                   description: part['description'],
                                   price: part['price'],
                                   brand: part['brand'],
@@ -501,7 +501,7 @@ class _SearchPageState extends State<SearchPage> {
                                     ClipRRect(
                                       borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                                       child: Image.network(
-                                        part['image_url'],
+                                        part['image_urls'][0], // İlk fotoğrafı kullan
                                         fit: BoxFit.cover,
                                         height: MediaQuery.of(context).size.width / 2,
                                         width: MediaQuery.of(context).size.width / 2,

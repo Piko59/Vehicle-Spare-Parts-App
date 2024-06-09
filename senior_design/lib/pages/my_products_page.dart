@@ -59,9 +59,9 @@ class _MyProductsPageState extends State<MyProductsPage> {
       final productSnapshot = await _firestore.collection('parts').doc(productId).get();
       if (productSnapshot.exists) {
         final productData = productSnapshot.data() as Map<String, dynamic>;
-        final imageUrl = productData['image_url'];
-        if (imageUrl != null) {
-          final ref = _storage.refFromURL(imageUrl);
+        final imageUrls = productData['image_urls'];
+        if (imageUrls != null && imageUrls.isNotEmpty) {
+          final ref = _storage.refFromURL(imageUrls[0]);
           await ref.delete();
         }
       }
@@ -169,7 +169,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
                           ClipRRect(
                             borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                             child: Image.network(
-                              product['image_url'],
+                              product['image_urls'][0], // İlk fotoğrafı kullan
                               fit: BoxFit.cover,
                               height: MediaQuery.of(context).size.width / 2,
                               width: MediaQuery.of(context).size.width / 2,

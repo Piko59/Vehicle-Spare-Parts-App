@@ -6,7 +6,7 @@ import 'business_details_page.dart';
 
 class PartDetailPage extends StatefulWidget {
   final String title;
-  final String imageUrl;
+  final List<String> imageUrls;
   final String description;
   final double price;
   final String brand;
@@ -16,7 +16,7 @@ class PartDetailPage extends StatefulWidget {
 
   PartDetailPage({
     required this.title,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.description,
     required this.price,
     required this.brand,
@@ -32,6 +32,8 @@ class PartDetailPage extends StatefulWidget {
 class _PartDetailPageState extends State<PartDetailPage> {
   String userName = '';
   int selectedTabIndex = 0;
+  PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -150,12 +152,46 @@ class _PartDetailPageState extends State<PartDetailPage> {
             children: [
               Stack(
                 children: [
-                  ClipRRect(
-                    child: Image.network(
-                      widget.imageUrl,
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.width,
-                      fit: BoxFit.cover,
+                  Container(
+                    height: MediaQuery.of(context).size.width,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: widget.imageUrls.length,
+                      onPageChanged: (int index) {
+                        setState(() {
+                          _currentPage = index;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return ClipRRect(
+                          child: Image.network(
+                            widget.imageUrls[index],
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.width,
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 45,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(widget.imageUrls.length, (index) {
+                        return AnimatedContainer(
+                          duration: Duration(milliseconds: 300),
+                          margin: EdgeInsets.symmetric(horizontal: 4.0),
+                          height: _currentPage == index ? 12.0 : 8.0,
+                          width: _currentPage == index ? 12.0 : 8.0,
+                          decoration: BoxDecoration(
+                            color: _currentPage == index ? Colors.white : Colors.white.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(6.0),
+                          ),
+                        );
+                      }),
                     ),
                   ),
                   Positioned(
