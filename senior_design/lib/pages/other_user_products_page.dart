@@ -120,7 +120,7 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
                         ClipRRect(
                           borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                           child: Image.network(
-                            product['image_urls'][0], // İlk fotoğrafı kullan
+                            product['image_urls'][0],
                             fit: BoxFit.cover,
                             height: MediaQuery.of(context).size.width / 2,
                             width: MediaQuery.of(context).size.width / 2,
@@ -150,7 +150,7 @@ class _OtherUserProductsPageState extends State<OtherUserProductsPage> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Spacer(), // Boş alan bırakmak için kullanılır
+                        Spacer(),
                         Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Align(

@@ -38,7 +38,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
   Future<void> _showDeleteConfirmationDialog(String commentId, String businessId) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // User must tap button to dismiss
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Delete Comment', style: TextStyle(color: Colors.red)),

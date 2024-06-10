@@ -16,11 +16,11 @@ class _AddCommentPageState extends State<AddCommentPage> {
   double _rating = 0.0;
   String _comment = '';
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
-  bool _isSubmitting = false; // Button submission state
+  bool _isSubmitting = false;
 
   void _submitComment() async {
     setState(() {
-      _isSubmitting = true; // Disable button
+      _isSubmitting = true;
     });
 
     String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -91,7 +91,7 @@ class _AddCommentPageState extends State<AddCommentPage> {
       );
     } finally {
       setState(() {
-        _isSubmitting = false; // Re-enable button
+        _isSubmitting = false;
       });
     }
   }
@@ -174,7 +174,7 @@ class _AddCommentPageState extends State<AddCommentPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitComment, // Disable button when submitting
+                  onPressed: _isSubmitting ? null : _submitComment,
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 0),
                     textStyle: TextStyle(

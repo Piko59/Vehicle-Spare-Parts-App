@@ -32,18 +32,16 @@ class _AddPartPageState extends State<AddPartPage> {
 
   Future<void> _pickImages() async {
     final pickedFiles = await picker.pickMultiImage();
-    if (pickedFiles != null) {
-      if (imageFiles.length + pickedFiles.length > 6) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You can select up to 6 images only.')),
-        );
-        return;
-      }
-      setState(() {
-        imageFiles.addAll(pickedFiles.map((pickedFile) => File(pickedFile.path)).toList());
-      });
+    if (imageFiles.length + pickedFiles.length > 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You can select up to 6 images only.')),
+      );
+      return;
     }
-  }
+    setState(() {
+      imageFiles.addAll(pickedFiles.map((pickedFile) => File(pickedFile.path)).toList());
+    });
+    }
 
   Future<void> _savePart() async {
     if (imageFiles.isEmpty) {

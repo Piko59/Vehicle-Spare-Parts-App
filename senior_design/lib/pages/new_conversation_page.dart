@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'chat_page.dart';
 
 class NewConversationPage extends StatefulWidget {
   final String userId;
@@ -15,6 +16,7 @@ class _NewConversationPageState extends State<NewConversationPage> {
   late Query _userConversationsRef;
   Set<String> _existingConversationUserIds = {};
   bool _isLoading = true;
+  List<Map<String, String>> _usersDetails = [];
 
   @override
   void initState() {
@@ -38,9 +40,32 @@ class _NewConversationPageState extends State<NewConversationPage> {
         });
       }
     }
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    DatabaseEvent event = await _usersRef.once();
+    if (event.snapshot.value != null) {
+      var users = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
+      for (var userId in users.keys) {
+        if (userId != widget.userId && !_existingConversationUserIds.contains(userId)) {
+          var userDetails = await _getUserDetails(userId);
+          _usersDetails.add(userDetails);
+        }
+      }
+    }
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<Map<String, String>> _getUserDetails(String userId) async {
+    DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId');
+    DatabaseEvent event = await userRef.once();
+    Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
+    String name = userData['name'] as String? ?? 'Unknown';
+    String imageUrl = userData['imageUrl'] as String? ?? 'assets/default_user_avatar.png';
+    return {'userId': userId, 'name': name, 'imageUrl': imageUrl};
   }
 
   Future<void> _createConversation(String otherUserId) async {
@@ -58,16 +83,10 @@ class _NewConversationPageState extends State<NewConversationPage> {
     await FirebaseDatabase.instance.ref('users/${widget.userId}/conversations/$conversationId').set(true);
     await FirebaseDatabase.instance.ref('users/$otherUserId/conversations/$conversationId').set(true);
 
-    Navigator.pop(context);
-  }
-
-  Future<Map<String, String>> _getUserDetails(String userId) async {
-    DatabaseReference userRef = FirebaseDatabase.instance.ref('users/$userId');
-    DatabaseEvent event = await userRef.once();
-    Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map<dynamic, dynamic>? ?? {});
-    String name = userData['name'] as String? ?? 'Unknown';
-    String imageUrl = userData['imageUrl'] as String? ?? 'assets/default_user_avatar.png';
-    return {'name': name, 'imageUrl': imageUrl};
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => ChatPage(conversationId: conversationId)),
+    );
   }
 
   @override
@@ -96,56 +115,22 @@ class _NewConversationPageState extends State<NewConversationPage> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : StreamBuilder<DatabaseEvent>(
-              stream: _usersRef.onValue,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text("Error loading users"));
-                } else if (snapshot.hasData && snapshot.data!.snapshot.value != null) {
-                  var users = (snapshot.data!.snapshot.value as Map).keys.where((id) => id != widget.userId && !_existingConversationUserIds.contains(id));
-
-                  return ListView(
-                    children: users.map((userId) {
-                      return FutureBuilder<Map<String, String>>(
-                        future: _getUserDetails(userId),
-                        builder: (context, userSnapshot) {
-                          if (userSnapshot.connectionState == ConnectionState.waiting) {
-                            return ListTile(
-                              leading: CircleAvatar(
-                                radius: 30,
-                                backgroundImage: AssetImage('assets/default_user_avatar.png'),
-                              ),
-                              title: Text('Loading...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            );
-                          } else if (userSnapshot.hasError) {
-                            return ListTile(
-                              leading: CircleAvatar(
-                                radius: 30,
-                                backgroundImage: AssetImage('assets/default_user_avatar.png'),
-                              ),
-                              title: Text('Error loading user', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            );
-                          } else {
-                            var userDetails = userSnapshot.data!;
-                            return ListTile(
-                              leading: CircleAvatar(
-                                radius: 30,
-                                backgroundImage: userDetails['imageUrl']!.startsWith('assets/')
-                                    ? AssetImage(userDetails['imageUrl']!) as ImageProvider
-                                    : NetworkImage(userDetails['imageUrl']!),
-                              ),
-                              title: Text(userDetails['name']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              subtitle: Text("Tap to start a conversation", style: TextStyle(fontSize: 14)),
-                              onTap: () => _createConversation(userId),
-                              trailing: Icon(Icons.arrow_forward, color: Color(0xFFFF0080)),
-                            );
-                          }
-                        },
-                      );
-                    }).toList(),
-                  );
-                }
-                return Center(child: Text("No users found"));
+          : ListView.builder(
+              itemCount: _usersDetails.length,
+              itemBuilder: (context, index) {
+                var userDetails = _usersDetails[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    radius: 30,
+                    backgroundImage: userDetails['imageUrl']!.startsWith('assets/')
+                        ? AssetImage(userDetails['imageUrl']!) as ImageProvider
+                        : NetworkImage(userDetails['imageUrl']!),
+                  ),
+                  title: Text(userDetails['name']!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  subtitle: Text("Tap to start a conversation", style: TextStyle(fontSize: 14)),
+                  onTap: () => _createConversation(userDetails['userId']!),
+                  trailing: Icon(Icons.arrow_forward, color: Color(0xFFFF0080)),
+                );
               },
             ),
     );

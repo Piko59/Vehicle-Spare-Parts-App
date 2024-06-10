@@ -64,18 +64,16 @@ class _EditPartPageState extends State<EditPartPage> {
 
   Future<void> _pickImages() async {
     final pickedFiles = await picker.pickMultiImage();
-    if (pickedFiles != null) {
-      if (_images.length + _imageUrls.length + pickedFiles.length > 6) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You can select up to 6 images only.')),
-        );
-        return;
-      }
-      setState(() {
-        _images.addAll(pickedFiles.map((pickedFile) => File(pickedFile.path)).toList());
-      });
+    if (_images.length + _imageUrls.length + pickedFiles.length > 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You can select up to 6 images only.')),
+      );
+      return;
     }
-  }
+    setState(() {
+      _images.addAll(pickedFiles.map((pickedFile) => File(pickedFile.path)).toList());
+    });
+    }
 
   Future<void> _deleteOldImages() async {
     for (String imageUrl in _imageUrls) {

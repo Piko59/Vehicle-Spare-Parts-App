@@ -101,7 +101,6 @@ class _SearchPageState extends State<SearchPage> {
   void _applyFilters() {
     FocusScope.of(context).unfocus();
     setState(() {
-      // Filtering işlemi burada yapılır.
     });
   }
 
@@ -303,10 +302,10 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                               keyboardType: TextInputType.number,
                               onEditingComplete: () {
-                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                                FocusScope.of(context).unfocus();
                               },
                               onSubmitted: (value) {
-                                FocusScope.of(context).unfocus(); // Klavyeyi kapat
+                                FocusScope.of(context).unfocus();
                               },
                             ),
                           ),
@@ -442,7 +441,7 @@ class _SearchPageState extends State<SearchPage> {
                                     ClipRRect(
                                       borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
                                       child: Image.network(
-                                        part['image_urls'][0], // İlk fotoğrafı kullan
+                                        part['image_urls'][0],
                                         fit: BoxFit.cover,
                                         height: MediaQuery.of(context).size.width / 2,
                                         width: MediaQuery.of(context).size.width / 2,
@@ -458,7 +457,7 @@ class _SearchPageState extends State<SearchPage> {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    Spacer(), // Boş alan bırakmak için kullanılır
+                                    Spacer(),
                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Align(

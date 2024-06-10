@@ -62,7 +62,7 @@ class _BusinessCommentsPageState extends State<BusinessCommentsPage> {
   }
 
   void _navigateToAddCommentPage() async {
-    if (_currentUser != null && _currentUser!.uid == widget.businessUid) {
+    if (_currentUser != null && _currentUser.uid == widget.businessUid) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('This business belongs to you')),
       );

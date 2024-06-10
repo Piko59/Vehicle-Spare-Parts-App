@@ -7,7 +7,7 @@ import 'fullscreen_page.dart';
 import 'business_details_page.dart';
 import 'category_page.dart';
 import 'search_page.dart';
-import 'all_businesses_page.dart'; // Yeni sayfa import edildi
+import 'all_businesses_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -21,6 +21,45 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   LocationData? _currentLocation;
   late GoogleMapController mapController;
   final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Location location = Location();
+      bool serviceEnabled;
+      PermissionStatus permissionGranted;
+      LocationData locationData;
+
+      serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) {
+          return;
+        }
+      }
+
+      permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          return;
+        }
+      }
+
+      locationData = await location.getLocation();
+      setState(() {
+        _currentLocation = locationData;
+      });
+    } catch (e) {
+      debugPrint('Error getting location: $e');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -120,44 +159,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _getCurrentLocation();
-  }
-
-  Future<void> _getCurrentLocation() async {
-    try {
-      Location location = Location();
-      bool serviceEnabled;
-      PermissionStatus permissionGranted;
-      LocationData locationData;
-
-      serviceEnabled = await location.serviceEnabled();
-      if (!serviceEnabled) {
-        serviceEnabled = await location.requestService();
-        if (!serviceEnabled) {
-          return;
-        }
-      }
-
-      permissionGranted = await location.hasPermission();
-      if (permissionGranted == PermissionStatus.denied) {
-        permissionGranted = await location.requestPermission();
-        if (permissionGranted != PermissionStatus.granted) {
-          return;
-        }
-      }
-
-      locationData = await location.getLocation();
-      setState(() {
-        _currentLocation = locationData;
-      });
-    } catch (e) {
-      debugPrint('Error getting location: $e');
-    }
-  }
-
   List<String> businessCategories = [
     'Tire Shop',
     'Dent Repair',
@@ -175,9 +176,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           title: Text(
             'Emergency Categories',
             style: TextStyle(
-              fontSize: 24, // Başlık metnini büyük yap
+              fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.red, // Kırmızı renk kullan
+              color: Colors.red,
             ),
           ),
           content: SingleChildScrollView(
@@ -188,20 +189,20 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                   title: Text(
                     businessCategories[index],
                     style: TextStyle(
-                      color: Colors.red, // Kırmızı renk kullan
+                      color: Colors.red,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   trailing: Icon(
-                    Icons.arrow_forward, // Gitme ikonu
-                    color: Colors.red, // Renk
+                    Icons.arrow_forward,
+                    color: Colors.red,
                   ),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CategoryBusinessesPage (
+                        builder: (context) => CategoryBusinessesPage(
                           category: businessCategories[index],
                         ),
                       ),
@@ -217,7 +218,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, // Kırmızı renk kullan
+                backgroundColor: Colors.red,
               ),
               child: Text(
                 'Cancel',
@@ -286,6 +287,15 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                       ),
                       onMapCreated: (GoogleMapController controller) {
                         mapController = controller;
+                        if (_currentLocation != null) {
+                          mapController.moveCamera(
+                            CameraUpdate.newLatLngZoom(
+                              LatLng(_currentLocation!.latitude!,
+                                  _currentLocation!.longitude!),
+                              14.0,
+                            ),
+                          );
+                        }
                       },
                       onTap: (LatLng position) {
                         _navigateToFullScreenMap(context);
@@ -341,10 +351,9 @@ class PopularStores extends StatefulWidget {
   @override
   _PopularStoresState createState() => _PopularStoresState();
 }
-
 class _PopularStoresState extends State<PopularStores> {
   List<Map<String, dynamic>> _stores = [];
-
+  bool _isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -394,19 +403,24 @@ class _PopularStoresState extends State<PopularStores> {
           }
         }
 
-        // Rating'e göre sıralama ve ilk 5 mağazayı alma
         stores.sort((a, b) => b['rating'].compareTo(a['rating']));
         stores = stores.take(5).toList();
 
         setState(() {
           _stores = stores;
-          debugPrint('Stores list updated: $_stores');
+          _isLoading = false;
         });
       } else {
+        setState(() {
+          _isLoading = false;
+        });
         debugPrint('Businesses snapshot does not exist');
       }
     } catch (e) {
       debugPrint('Error fetching stores: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -436,7 +450,7 @@ class _PopularStoresState extends State<PopularStores> {
         ),
         Container(
           height: 150,
-          child: _stores.isEmpty
+          child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -535,7 +549,6 @@ class StoreTile extends StatelessWidget {
     );
   }
 }
-
 
 class VehiclePartIcons extends StatelessWidget {
   final Function(String) onCategorySelected;
