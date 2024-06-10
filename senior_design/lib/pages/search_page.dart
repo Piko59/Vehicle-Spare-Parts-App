@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'part_detail_page.dart';
+import '../services/data_service.dart';
 
 class SearchPage extends StatefulWidget {
   final String? initialVehicleType;
@@ -24,69 +25,9 @@ class _SearchPageState extends State<SearchPage> {
   String? _selectedSortOption;
 
   final List<String> vehicleTypes = ['Car', 'Motorcycle', 'Bicycle'];
-  final Map<String, List<String>> vehicleCategories = {
-    'Car': [
-      'Ignition & Fuel',
-      'Exhaust',
-      'Electric',
-      'Filter',
-      'Brake & Clutch',
-      'Mechanical',
-      'Engine',
-      'Transmission & Gear',
-      'Steering & Suspension',
-    ],
-    'Motorcycle': [
-      'Clutch',
-      'Exhaust',
-      'Electric',
-      'Brake',
-      'Fairing',
-      'Ventilation',
-      'Engine',
-      'Suspension',
-      'Transmission',
-      'Lubrication',
-      'Fuel System',
-      'Steering',
-    ],
-    'Bicycle': [
-      'Handlebar',
-      'Brake',
-      'Rotor',
-      'Bearing',
-      'Rim',
-      'Frame',
-      'Drivetrain Components',
-      'Electric Components',
-      'Cockpit',
-      'Brake Pad',
-    ],
-  };
 
-  final Map<String, List<String>> vehicleBrands = {
-    'Car': [
-      'Toyota',
-      'Honda',
-      'Ford',
-      'BMW',
-      'Mercedes',
-    ],
-    'Motorcycle': [
-      'Yamaha',
-      'Honda',
-      'Suzuki',
-      'Kawasaki',
-      'Ducati',
-    ],
-    'Bicycle': [
-      'Giant',
-      'Trek',
-      'Specialized',
-      'Cannondale',
-      'Bianchi',
-    ],
-  };
+  final Map<String, List<String>> vehicleCategories = DataService.vehicleCategories;
+  final Map<String, List<String>> vehicleBrands = DataService.vehicleBrands;
 
   final List<String> sortOptions = [
     'No order',

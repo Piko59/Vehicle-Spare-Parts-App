@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
+import '../services/data_service.dart';
 
 class EditPartPage extends StatefulWidget {
   final String productId;
@@ -30,69 +31,8 @@ class _EditPartPageState extends State<EditPartPage> {
   final picker = ImagePicker();
   List<String> _imageUrls = [];
 
-  final Map<String, List<String>> vehicleCategories = {
-    'Car': [
-      'Ignition & Fuel',
-      'Exhaust',
-      'Electric',
-      'Filter',
-      'Brake & Clutch',
-      'Mechanical',
-      'Engine',
-      'Transmission & Gear',
-      'Steering & Suspension',
-    ],
-    'Motorcycle': [
-      'Clutch',
-      'Exhaust',
-      'Electric',
-      'Brake',
-      'Fairing',
-      'Ventilation',
-      'Engine',
-      'Suspension',
-      'Transmission',
-      'Lubrication',
-      'Fuel System',
-      'Steering',
-    ],
-    'Bicycle': [
-      'Handlebar',
-      'Brake',
-      'Rotor',
-      'Bearing',
-      'Rim',
-      'Frame',
-      'Drivetrain Components',
-      'Electric Components',
-      'Cockpit',
-      'Brake Pad',
-    ],
-  };
-
-  final Map<String, List<String>> vehicleBrands = {
-    'Car': [
-      'Toyota',
-      'Honda',
-      'Ford',
-      'BMW',
-      'Mercedes',
-    ],
-    'Motorcycle': [
-      'Yamaha',
-      'Honda',
-      'Suzuki',
-      'Kawasaki',
-      'Ducati',
-    ],
-    'Bicycle': [
-      'Giant',
-      'Trek',
-      'Specialized',
-      'Cannondale',
-      'Bianchi',
-    ],
-  };
+  final Map<String, List<String>> vehicleCategories = DataService.vehicleCategories;
+  final Map<String, List<String>> vehicleBrands = DataService.vehicleBrands;
 
   @override
   void initState() {
@@ -122,12 +62,17 @@ class _EditPartPageState extends State<EditPartPage> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
+  Future<void> _pickImages() async {
+    final pickedFiles = await picker.pickMultiImage();
+    if (pickedFiles != null) {
+      if (_images.length + _imageUrls.length + pickedFiles.length > 6) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('You can select up to 6 images only.')),
+        );
+        return;
+      }
       setState(() {
-        _images.add(File(pickedFile.path));
+        _images.addAll(pickedFiles.map((pickedFile) => File(pickedFile.path)).toList());
       });
     }
   }
@@ -140,6 +85,21 @@ class _EditPartPageState extends State<EditPartPage> {
       } catch (e) {
         print('Error deleting old image: $e');
       }
+    }
+  }
+
+  Future<void> _deleteImage(String imageUrl) async {
+    try {
+      final ref = FirebaseStorage.instance.refFromURL(imageUrl);
+      await ref.delete();
+      setState(() {
+        _imageUrls.remove(imageUrl);
+      });
+    } catch (e) {
+      print('Error deleting image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Failed to delete image: $e'),
+      ));
     }
   }
 
@@ -212,26 +172,25 @@ class _EditPartPageState extends State<EditPartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60.0),
-        child: AppBar(
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomLeft,
-                end: Alignment.topRight,
-                colors: [
-                  Color(0xFFFF76CE),
-                  Color(0xFFA3D8FF),
-                ],
-              ),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text('Edit Part',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomLeft,
+              end: Alignment.topRight,
+              colors: [
+                Color(0xFFFF76CE),
+                Color(0xFFA3D8FF),
+              ],
             ),
           ),
-          title: Text('Edit Part',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          iconTheme: IconThemeData(color: Colors.white),
         ),
       ),
       body: _productData == null
@@ -241,7 +200,7 @@ class _EditPartPageState extends State<EditPartPage> {
               child: ListView(
                 children: <Widget>[
                   GestureDetector(
-                    onTap: _pickImage,
+                    onTap: _pickImages,
                     child: Container(
                       height: 200,
                       width: double.infinity,
@@ -249,28 +208,78 @@ class _EditPartPageState extends State<EditPartPage> {
                         border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: _images.isEmpty
-                          ? (_imageUrls.isNotEmpty
-                              ? PageView.builder(
-                                  itemCount: _imageUrls.length,
-                                  itemBuilder: (context, index) {
-                                    return Image.network(_imageUrls[index], fit: BoxFit.cover);
-                                  },
-                                )
-                              : Center(child: Text('Choose an Image')))
-                          : PageView.builder(
-                              itemCount: _images.length,
-                              itemBuilder: (context, index) {
-                                return Image.file(_images[index], fit: BoxFit.cover);
-                              },
-                            ),
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(8.0),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8.0,
+                          mainAxisSpacing: 8.0,
+                        ),
+                        itemCount: _imageUrls.length + _images.length < 6
+                            ? _imageUrls.length + _images.length + 1
+                            : 6,
+                        itemBuilder: (context, index) {
+                          if (index < _imageUrls.length) {
+                            return Stack(
+                              children: [
+                                Image.network(
+                                  _imageUrls[index],
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      _deleteImage(_imageUrls[index]);
+                                    },
+                                    child: Icon(
+                                      Icons.remove_circle,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else if (index < _imageUrls.length + _images.length) {
+                            int imageIndex = index - _imageUrls.length;
+                            return Stack(
+                              children: [
+                                Image.file(
+                                  _images[imageIndex],
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _images.removeAt(imageIndex);
+                                      });
+                                    },
+                                    child: Icon(
+                                      Icons.remove_circle,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else {
+                            return IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: _pickImages,
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ),
-                  SizedBox(height: 20),
-                  _buildTextInput('Title', _titleController),
-                  _buildTextInput('Description', _descriptionController),
-                  _buildTextInput('Price', _priceController, inputType: TextInputType.number),
-                  _buildTextInput('Year', _yearController, inputType: TextInputType.number),
                   SizedBox(height: 20),
                   DropdownButtonFormField<String>(
                     value: _selectedVehicleType,
@@ -337,15 +346,19 @@ class _EditPartPageState extends State<EditPartPage> {
                       );
                     }).toList(),
                   ),
+                  SizedBox(height: 10),
+                  _buildTextInput('Title', _titleController),
+                  _buildTextInput('Description', _descriptionController),
+                  _buildTextInput('Price', _priceController, inputType: TextInputType.number),
+                  _buildTextInput('Year', _yearController, inputType: TextInputType.number),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Text(
-                        'Is New? ',
-                        style: TextStyle(fontSize: 18),
+                        'Is New?',
+                        style: TextStyle(fontSize: 16),
                       ),
-                      SizedBox(width: 10),
-                      Switch(
+                      Checkbox(
                         value: _isNew,
                         onChanged: (bool? value) {
                           setState(() {
@@ -355,9 +368,9 @@ class _EditPartPageState extends State<EditPartPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
                   _isLoading
-                      ? CircularProgressIndicator()
+                      ? Center(child: CircularProgressIndicator())
                       : ElevatedButton(
                           onPressed: _saveChanges,
                           style: ElevatedButton.styleFrom(
@@ -377,7 +390,6 @@ class _EditPartPageState extends State<EditPartPage> {
                             ),
                             child: Container(
                               padding: const EdgeInsets.all(15.0),
-                              alignment: Alignment.center,
                               constraints: BoxConstraints(minHeight: 50),
                               child: const Text(
                                 'Save Changes',

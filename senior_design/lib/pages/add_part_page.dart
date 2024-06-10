@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:path_provider/path_provider.dart';
+import '../services/data_service.dart';
 
 class AddPartPage extends StatefulWidget {
   @override
@@ -27,81 +27,20 @@ class _AddPartPageState extends State<AddPartPage> {
 
   bool _isLoading = false;
 
-  final Map<String, List<String>> vehicleCategories = {
-    'Car': [
-      'Ignition & Fuel',
-      'Exhaust',
-      'Electric',
-      'Filter',
-      'Brake & Clutch',
-      'Mechanical',
-      'Engine',
-      'Transmission & Gear',
-      'Steering & Suspension',
-    ],
-    'Motorcycle': [
-      'Clutch',
-      'Exhaust',
-      'Electric',
-      'Brake',
-      'Fairing',
-      'Ventilation',
-      'Engine',
-      'Suspension',
-      'Transmission',
-      'Lubrication',
-      'Fuel System',
-      'Steering',
-    ],
-    'Bicycle': [
-      'Handlebar',
-      'Brake',
-      'Rotor',
-      'Bearing',
-      'Rim',
-      'Frame',
-      'Drivetrain Components',
-      'Electric Components',
-      'Cockpit',
-      'Brake Pad',
-    ],
-  };
-
-  final Map<String, List<String>> vehicleBrands = {
-    'Car': [
-      'Toyota',
-      'Honda',
-      'Ford',
-      'BMW',
-      'Mercedes',
-    ],
-    'Motorcycle': [
-      'Yamaha',
-      'Honda',
-      'Suzuki',
-      'Kawasaki',
-      'Ducati',
-    ],
-    'Bicycle': [
-      'Giant',
-      'Trek',
-      'Specialized',
-      'Cannondale',
-      'Bianchi',
-    ],
-  };
+  final Map<String, List<String>> vehicleCategories = DataService.vehicleCategories;
+  final Map<String, List<String>> vehicleBrands = DataService.vehicleBrands;
 
   Future<void> _pickImages() async {
     final pickedFiles = await picker.pickMultiImage();
     if (pickedFiles != null) {
-      if (pickedFiles.length > 6) {
+      if (imageFiles.length + pickedFiles.length > 6) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('You can select up to 6 images only.')),
         );
         return;
       }
       setState(() {
-        imageFiles = pickedFiles.map((pickedFile) => File(pickedFile.path)).toList();
+        imageFiles.addAll(pickedFiles.map((pickedFile) => File(pickedFile.path)).toList());
       });
     }
   }
@@ -247,15 +186,48 @@ class _AddPartPageState extends State<AddPartPage> {
                   ),
                   child: imageFiles.isEmpty
                       ? Center(child: Text('Choose Images'))
-                      : GridView.count(
-                          crossAxisCount: 3,
-                          children: List.generate(imageFiles.length, (index) {
+                      : GridView.builder(
+                          padding: const EdgeInsets.all(8.0),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8.0,
+                            mainAxisSpacing: 8.0,
+                          ),
+                          itemCount: imageFiles.length < 6 ? imageFiles.length + 1 : 6,
+                          itemBuilder: (context, index) {
+                            if (index == imageFiles.length) {
+                              return IconButton(
+                                icon: Icon(Icons.add),
+                                onPressed: _pickImages,
+                              );
+                            }
                             File file = imageFiles[index];
-                            return Image.file(
-                              file,
-                              fit: BoxFit.cover,
+                            return Stack(
+                              children: [
+                                Image.file(
+                                  file,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        imageFiles.removeAt(index);
+                                      });
+                                    },
+                                    child: Icon(
+                                      Icons.remove_circle,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             );
-                          }),
+                          },
                         ),
                 ),
               ),
@@ -334,11 +306,10 @@ class _AddPartPageState extends State<AddPartPage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'Is New? ',
-                    style: TextStyle(fontSize: 18),
+                    'New Part?',
+                    style: TextStyle(fontSize: 16),
                   ),
-                  SizedBox(width: 10),
-                  Switch(
+                  Checkbox(
                     value: _isNew,
                     onChanged: (bool? value) {
                       setState(() {
@@ -351,35 +322,29 @@ class _AddPartPageState extends State<AddPartPage> {
               SizedBox(height: 10),
               _isLoading
                   ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _savePart,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  : Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFFFF76CE),
+                            Color(0xFFA3D8FF),
+                          ],
+                          begin: Alignment.bottomLeft,
+                          end: Alignment.topRight,
                         ),
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF76CE), Color(0xFFA3D8FF)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
+                      child: ElevatedButton(
+                        onPressed: _savePart,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                          textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        child: Container(
-                          padding: const EdgeInsets.all(15.0),
-                          alignment: Alignment.center,
-                          constraints: BoxConstraints(minHeight: 50),
-                          child: const Text(
-                            'Add Spare Part',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
+                        child: Text(
+                          'Save Part',
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ),
