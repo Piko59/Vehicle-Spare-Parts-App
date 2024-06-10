@@ -62,7 +62,7 @@ class _AddPartPageState extends State<AddPartPage> {
         final fileName = DateTime.now().millisecondsSinceEpoch.toString();
         firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
             .ref()
-            .child('parts')
+            .child('part_images')
             .child('$fileName.jpg');
 
         firebase_storage.UploadTask uploadTask = ref.putFile(file);

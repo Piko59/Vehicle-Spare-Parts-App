@@ -114,7 +114,7 @@ class _EditPartPageState extends State<EditPartPage> {
       List<String> newImageUrls = [];
       for (File image in _images) {
         final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-        final storageRef = FirebaseStorage.instance.ref().child('parts/$fileName.jpg');
+        final storageRef = FirebaseStorage.instance.ref().child('part_images/$fileName.jpg');
         await storageRef.putFile(image);
         String imageUrl = await storageRef.getDownloadURL();
         newImageUrls.add(imageUrl);
