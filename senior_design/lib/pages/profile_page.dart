@@ -157,7 +157,13 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
+      appBar: AppBar(  
+        leading: IconButton(
+          icon: Icon(Icons.camera_alt, color: Colors.white),
+          onPressed: () {
+            _pickImage();
+          },
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [

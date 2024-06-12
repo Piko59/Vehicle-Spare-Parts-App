@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'other_user_products_page.dart';
 import 'business_comments_page.dart';
+import 'chat_page.dart';
 
 class BusinessDetailsPage extends StatefulWidget {
   final String businessUid;
@@ -41,7 +43,6 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
         _businessImageUrl = data['imageUrl'];
         _businessCategory = data['businessCategory'] ?? '';
         _businessPhoneNumber = data['phoneNumber'] ?? '';
-        _businessPhoneNumber = data['phoneNumber'] ?? '';
       });
     }
   }
@@ -68,6 +69,73 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
     } else {
       throw 'Could not launch $url';
     }
+  }
+
+  Future<void> handleSendMessage() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return;
+    }
+
+    if (currentUser.uid == widget.businessUid) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Notice"),
+            content: Text("This product already belongs to you."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    String currentUserId = currentUser.uid;
+    DatabaseReference userConversationsRef = FirebaseDatabase.instance.ref('users/$currentUserId/conversations');
+
+    DatabaseEvent userConversationsEvent = await userConversationsRef.once();
+    if (userConversationsEvent.snapshot.value != null) {
+      Map conversations = userConversationsEvent.snapshot.value as Map;
+      for (String conversationId in conversations.keys) {
+        DatabaseReference conversationRef = FirebaseDatabase.instance.ref('conversations/$conversationId/participants');
+        DatabaseEvent conversationEvent = await conversationRef.once();
+        Map participants = conversationEvent.snapshot.value as Map;
+
+        if (participants.containsKey(widget.businessUid)) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ChatPage(conversationId: conversationId)),
+          );
+          return;
+        }
+      }
+    }
+
+    DatabaseReference newConversationRef = FirebaseDatabase.instance.ref('conversations').push();
+    String newConversationId = newConversationRef.key!;
+    await newConversationRef.set({
+      'participants': {
+        currentUserId: true,
+        widget.businessUid: true,
+      },
+      'messages': {},
+    });
+
+    await FirebaseDatabase.instance.ref('users/$currentUserId/conversations/$newConversationId').set(true);
+    await FirebaseDatabase.instance.ref('users/${widget.businessUid}/conversations/$newConversationId').set(true);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChatPage(conversationId: newConversationId)),
+    );
   }
 
   @override
@@ -264,27 +332,21 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        child: ElevatedButton(
-                          onPressed: () async {
+                        child: TextButton(
+                          onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => OtherUserProductsPage(userId: widget.businessUid),
-                              ),
+                                  builder: (context) => OtherUserProductsPage(
+                                      userId: widget.businessUid)),
                             );
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            padding: EdgeInsets.symmetric(vertical: 15),
-                            textStyle: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          child: Text(
+                          child: const Text(
                             'Products',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                       ),
@@ -304,30 +366,21 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final result = await Navigator.push(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => BusinessCommentsPage(businessUid: widget.businessUid),
-                              ),
+                                  builder: (context) => BusinessCommentsPage(
+                                      businessUid: widget.businessUid)),
                             );
-                            if (result == true) {
-                              _fetchAverageRating();
-                            }
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            padding: EdgeInsets.symmetric(vertical: 15),
-                            textStyle: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          child: Text(
+                          child: const Text(
                             'Comments',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                       ),
@@ -338,6 +391,11 @@ class _BusinessDetailsPageState extends State<BusinessDetailsPage> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: handleSendMessage,
+          child: Icon(Icons.chat, color: Colors.white),
+          backgroundColor: Color(0xFFFF76CE),
       ),
     );
   }

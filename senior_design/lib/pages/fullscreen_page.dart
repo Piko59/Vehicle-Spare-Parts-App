@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'business_details_page.dart';
 
 class FullscreenPage extends StatefulWidget {
@@ -49,39 +50,43 @@ class _FullscreenPageState extends State<FullscreenPage> {
   }
 
   Future<void> _fetchBusinessLocations() async {
-    DatabaseReference ref =
-        FirebaseDatabase.instance.reference().child('users');
-    DataSnapshot snapshot = await ref.once().then((event) => event.snapshot);
-    Map<dynamic, dynamic>? users = snapshot.value as Map<dynamic, dynamic>?;
+    DatabaseReference businessRef =
+        FirebaseDatabase.instance.reference().child('businesses');
+    DataSnapshot businessSnapshot = await businessRef.once().then((event) => event.snapshot);
+    Map<dynamic, dynamic>? businesses = businessSnapshot.value as Map<dynamic, dynamic>?;
 
-    if (users != null) {
-      users.forEach((key, value) {
-        if (value['businessCategory'] != null && value['location'] != null) {
-          var location = value['location'];
+    if (businesses != null) {
+      for (var businessId in businesses.keys) {
+        DatabaseReference userRef = FirebaseDatabase.instance.reference().child('users').child(businessId);
+        DataSnapshot userSnapshot = await userRef.once().then((event) => event.snapshot);
+        var userData = userSnapshot.value as Map<dynamic, dynamic>;
+
+        if (userData['businessCategory'] != null && userData['location'] != null) {
+          var location = userData['location'];
           LatLng position = LatLng(location['latitude'], location['longitude']);
           Marker marker = Marker(
-            markerId: MarkerId(key),
+            markerId: MarkerId(businessId),
             position: position,
             infoWindow: InfoWindow(
-              title: value['name'] ?? 'No Name',
-              snippet: value['businessCategory'] ?? 'No Category',
+              title: userData['name'] ?? 'No Name',
+              snippet: userData['businessCategory'] ?? 'No Category',
             ),
             onTap: () {
-              _navigateToBusinessDetail(key);
             },
           );
           setState(() {
             _markers.add(marker);
             _businesses.add({
-              'key': key,
-              'name': value['name'] ?? 'No Name',
-              'imageUrl': value['imageUrl'],
-              'businessCategory': value['businessCategory'] ?? 'No Category',
+              'key': businessId,
+              'name': userData['name'] ?? 'No Name',
+              'imageUrl': userData['imageUrl'],
+              'businessCategory': userData['businessCategory'] ?? 'No Category',
               'position': position,
+              'averageRating': userData['averageRating'] ?? 0.0,
             });
           });
         }
-      });
+      }
     }
   }
 
@@ -177,7 +182,7 @@ class _FullscreenPageState extends State<FullscreenPage> {
                           child: Card(
                             margin: EdgeInsets.all(10.0),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 business['imageUrl'] != null
                                     ? Image.network(
@@ -201,6 +206,7 @@ class _FullscreenPageState extends State<FullscreenPage> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                                 Padding(
@@ -211,7 +217,19 @@ class _FullscreenPageState extends State<FullscreenPage> {
                                     style: TextStyle(
                                       color: Colors.grey,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
+                                ),
+                                SizedBox(height: 8),
+                                RatingBarIndicator(
+                                  rating: business['averageRating'].toDouble(),
+                                  itemBuilder: (context, index) => Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                  ),
+                                  itemCount: 5,
+                                  itemSize: 20.0,
+                                  direction: Axis.horizontal,
                                 ),
                               ],
                             ),
