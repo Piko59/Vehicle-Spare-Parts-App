@@ -409,7 +409,7 @@ class _SearchPageState extends State<SearchPage> {
                         crossAxisCount: 2,
                         crossAxisSpacing: 8.0,
                         mainAxisSpacing: 8.0,
-                        childAspectRatio: 0.65,
+                        childAspectRatio: 0.60,
                       ),
                       itemCount: parts.length,
                       itemBuilder: (context, index) {
